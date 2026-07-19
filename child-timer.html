@@ -1,7 +1,9 @@
 <!DOCTYPE html>
-<html class="h-full select-none">
+<html class="h-full select-none text-[15px]">
 <head>
   <meta charset="UTF-8">
+  <!-- 修正響應式：加入手機版必備 Viewport -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>今日時間管理工具</title>
   <!-- 導入 Tailwind CSS 3.4 -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -24,136 +26,142 @@
     }
   </script>
   <style>
-    .bombing-mode { animation: flashBomb 0.2s infinite alternate !important; }
+    /* 螢幕爆閃模式改為全螢幕，效果更強烈 */
+    .bombing-mode { animation: flashBomb 0.15s infinite alternate !important; }
     @keyframes flashBomb { 0% { background-color: #FFC4C4 !important; } 100% { background-color: #FFFFFF !important; } }
+    .bombing-body { animation: bodyBomb 0.15s infinite alternate !important; }
+    @keyframes bodyBomb { 0% { background-color: #FFA3A3 !important; } 100% { background-color: #F9F6F0 !important; } }
   </style>
 </head>
-<body class="bg-sibylBg m-0 p-5 min-h-full flex flex-col items-center justify-start box-border">
+<body id="mainBody" class="bg-sibylBg m-0 p-4 min-h-full flex flex-col items-center justify-start box-border text-sibylText">
 
   <!-- 🔊 質感啟動與防呆連線遮罩層 -->
-  <div id="audioUnlockOverlay" class="fixed inset-0 bg-sibylBg z-[9999] flex flex-col items-center justify-center p-6 box-border transition-all duration-500">
-    <div class="w-full max-w-[380px] bg-white rounded-[32px] p-8 text-center shadow-[0_20px_50px_rgba(74,62,61,0.05)] border border-[#EFEAE2] flex flex-col items-center">
+  <div id="audioUnlockOverlay" class="fixed inset-0 bg-sibylBg z-[9999] flex flex-col items-center justify-center p-4 box-border transition-all duration-500">
+    <div class="w-full max-w-[360px] bg-white rounded-[32px] p-6 text-center shadow-[0_20px_50px_rgba(74,62,61,0.05)] border border-[#EFEAE2] flex flex-col items-center box-border">
       
-      <div class="w-20 h-20 bg-sibylMain/30 rounded-full flex items-center justify-center mb-5 animate-pulse">
-        <div class="w-14 h-14 bg-sibylMain rounded-full flex items-center justify-center shadow-inner">
-          <span class="text-2xl">✨</span>
+      <div class="w-16 h-16 bg-sibylMain/30 rounded-full flex items-center justify-center mb-4 animate-pulse">
+        <div class="w-12 h-12 bg-sibylMain rounded-full flex items-center justify-center shadow-inner">
+          <span class="text-xl">✨</span>
         </div>
       </div>
       
-      <h2 class="m-0 mb-2 text-xl font-bold tracking-tight text-sibylText">數位管家已就緒</h2>
-      <p class="text-xs text-sibylMuted mb-6 px-2 leading-relaxed" id="txtOverlayTips">
+      <h2 class="m-0 mb-2 text-lg font-bold tracking-tight text-sibylText">數位管家已就緒</h2>
+      <p class="text-xs text-sibylMuted mb-5 px-2 leading-relaxed" id="txtOverlayTips">
         正在確認雲端資料庫連線權限...
       </p>
 
       <!-- 綁定輸入框 -->
-      <div id="idSetupBox" class="w-full mb-6 hidden">
+      <div id="idSetupBox" class="w-full mb-5 hidden">
         <input type="text" class="w-full p-3.5 rounded-xl border border-[#EFEAE2] bg-[#FDFBF7] text-xs text-center outline-none text-sibylText" id="inputSpreadsheetUrl" placeholder="請貼上您的 Google 試算表完整網址">
         <button class="w-full mt-2 py-2.5 bg-sibylText text-white text-xs font-semibold rounded-xl cursor-pointer" onclick="saveManualUrl()">綁定此資料庫 🔗</button>
       </div>
       
-      <button class="w-full py-4 bg-[#EFEAE2] text-sibylMuted border-none rounded-2xl text-base font-bold tracking-wider transition-all duration-300" id="btnUnlockStart" onclick="unlockAudioAndLoad()" disabled>
+      <button class="w-full py-3.5 bg-[#EFEAE2] text-sibylMuted border-none rounded-2xl text-sm font-bold tracking-wider transition-all duration-300" id="btnUnlockStart" onclick="unlockAudioAndLoad()" disabled>
         正在驗證安全通道...
       </button>
       
-      <div class="text-[9px] text-sibylLight/70 tracking-widest uppercase mt-6">
+      <div class="text-[9px] text-sibylLight/70 tracking-widest uppercase mt-5">
         Sibyl Digital Security Connected
       </div>
     </div>
   </div>
 
   <!-- 自製提示條 (Toast) -->
-  <div id="sibylToast" class="fixed top-6 left-1/2 -translate-x-1/2 z-[100000] w-full max-w-[340px] bg-white text-sibylText p-4 rounded-2xl text-sm font-medium shadow-[0_10px_30px_rgba(74,62,61,0.1)] border border-[#FFD2D2] flex items-center gap-3 transition-all duration-300 translate-y-[-100px] opacity-0">
-    <span class="text-lg" id="toastIcon">⚠️</span>
-    <span id="toastMsg">提示訊息</span>
+  <div id="sibylToast" class="fixed top-4 left-1/2 -translate-x-1/2 z-[100000] w-[90%] max-w-[340px] bg-white text-sibylText p-4 rounded-2xl text-xs font-medium shadow-[0_10px_30px_rgba(74,62,61,0.1)] border border-[#FFD2D2] flex items-center gap-3 transition-all duration-300 translate-y-[-100px] opacity-0">
+    <span class="text-base" id="toastIcon">⚠️</span>
+    <span id="toastMsg" class="flex-1">提示訊息</span>
   </div>
 
   <!-- 🧒 孩子操作台視圖 -->
-  <div class="w-full max-w-[480px] bg-white rounded-3xl p-8 shadow-[0_12px_40px_rgba(74,62,61,0.01)] box-border mb-5 relative border border-[#EFEAE2]/20" id="childView" style="display: none;">
-    <div class="absolute top-6 right-6 text-[13px] text-sibylMuted font-medium cursor-pointer" onclick="switchView('login')">⚙️ 家長管理</div>
-    <h1 class="text-2xl font-bold text-center m-0 mb-2" id="txtGreeting">連線中...</h1>
-    <div class="text-xs text-sibylMuted text-center mb-6">今天也要保持好習慣唷 ✨</div>
+  <div class="w-full max-w-[440px] bg-white rounded-3xl p-5 md:p-6 shadow-[0_12px_40px_rgba(74,62,61,0.01)] box-border mb-4 relative border border-[#EFEAE2]/20" id="childView" style="display: none;">
+    <div class="absolute top-5 right-5 text-xs text-sibylMuted font-medium cursor-pointer" onclick="switchView('login')">⚙️ 家長管理</div>
+    <h1 class="text-xl font-bold text-center m-0 mb-1" id="txtGreeting">連線中...</h1>
+    <div class="text-[11px] text-sibylMuted text-center mb-4">今天也要保持好習慣唷 ✨</div>
     
-    <hr class="border-0 border-t border-dashed border-[#EFEAE2] my-5">
+    <hr class="border-0 border-t border-dashed border-[#EFEAE2] my-4">
     
-    <div class="text-base font-semibold mb-4 flex items-center gap-1.5">📋 今日必須完成</div>
-    <div class="flex flex-col gap-3 mb-6" id="taskListContainer">
-      <div class="text-center text-sibylMuted text-sm py-5">資料庫通訊中...</div>
+    <div class="text-sm font-semibold mb-3 flex items-center gap-1.5">📋 今日必須完成</div>
+    <div class="flex flex-col gap-2.5 mb-5" id="taskListContainer">
+      <div class="text-center text-sibylMuted text-xs py-4">資料庫通訊中...</div>
     </div>
     
-    <div class="text-base font-semibold mb-4 flex items-center gap-1.5" id="timerTitle">⏰ 計時提醒管理</div>
-    <div class="bg-[#FDFBF7] p-6 rounded-3xl border border-[#EFEAE2] text-center mb-6 transition-all" id="timerBox">
-      <div class="text-sm text-sibylMuted mb-1" id="currentTimerItemName">請選擇下方項目開始計時</div>
-      <div class="text-[56px] font-bold tracking-wider mb-4 font-mono text-sibylText" id="txtCountdown">00:00</div>
-      <div class="grid grid-cols-2 gap-2.5 mt-3" id="timerBtnGridContainer"></div>
+    <div class="text-sm font-semibold mb-3 flex items-center gap-1.5" id="timerTitle">⏰ 計時提醒管理</div>
+    <div class="bg-[#FDFBF7] p-4 md:p-5 rounded-3xl border border-[#EFEAE2] text-center mb-5 transition-all" id="timerBox">
+      <div class="text-xs text-sibylMuted mb-1" id="currentTimerItemName">請選擇下方項目開始計時</div>
+      <div class="text-4xl md:text-5xl font-bold tracking-wider mb-3 font-mono text-sibylText" id="txtCountdown">00:00</div>
+      <!-- 計時項目按鈕網格 -->
+      <div class="grid grid-cols-2 gap-2 mt-2" id="timerBtnGridContainer"></div>
     </div>
     
-    <div class="text-base font-semibold mb-3 flex items-center gap-1.5">🔍 需要查資料嗎？</div>
-    <div class="flex gap-2 mb-6">
-      <input type="text" class="flex-1 p-3.5 rounded-xl border border-[#EFEAE2] bg-[#FDFBF7] text-sm text-sibylText outline-none" id="searchIn" placeholder="在這裡輸入想查的事物...">
-      <button class="w-auto px-5 bg-sibylMain font-bold rounded-xl text-sm border-none cursor-pointer" onclick="goGoogleSearch()">搜尋</button>
+    <div class="text-sm font-semibold mb-2 flex items-center gap-1.5">🔍 需要查資料嗎？</div>
+    <div class="flex gap-2 mb-5">
+      <input type="text" class="flex-1 p-3 rounded-xl border border-[#EFEAE2] bg-[#FDFBF7] text-xs text-sibylText outline-none" id="searchIn" placeholder="在這裡輸入想查的事物...">
+      <button class="w-auto px-4 bg-sibylMain font-bold rounded-xl text-xs border-none cursor-pointer" onclick="goGoogleSearch()">搜尋</button>
     </div>
     
-    <hr class="border-0 border-t border-dashed border-[#EFEAE2] my-6">
+    <hr class="border-0 border-t border-dashed border-[#EFEAE2] my-4">
     
-    <div class="text-base font-semibold mb-3 flex items-center gap-1.5">🥰 今天的心情收件夾</div>
-    <div class="flex justify-between gap-2 mt-3">
-      <button class="flex-1 text-2xl p-2.5 bg-[#FDFBF7] border border-[#EFEAE2] rounded-2xl cursor-pointer transition-all active:scale-95 mood-btn" onclick="selectMood(this, '🥰')">🥰</button>
-      <button class="flex-1 text-2xl p-2.5 bg-[#FDFBF7] border border-[#EFEAE2] rounded-2xl cursor-pointer transition-all active:scale-95 mood-btn" onclick="selectMood(this, '🤩')">🤩</button>
-      <button class="flex-1 text-2xl p-2.5 bg-[#FDFBF7] border border-[#EFEAE2] rounded-2xl cursor-pointer transition-all active:scale-95 mood-btn" onclick="selectMood(this, '🥱')">🥱</button>
-      <button class="flex-1 text-2xl p-2.5 bg-[#FDFBF7] border border-[#EFEAE2] rounded-2xl cursor-pointer transition-all active:scale-95 mood-btn" onclick="selectMood(this, '🥺')">🥺</button>
+    <div class="text-sm font-semibold mb-2 flex items-center gap-1.5">🥰 今天的心情收件夾</div>
+    <div class="flex justify-between gap-1.5 mt-2">
+      <button class="flex-1 text-xl p-2 bg-[#FDFBF7] border border-[#EFEAE2] rounded-xl cursor-pointer transition-all active:scale-95 mood-btn" onclick="selectMood(this, '🥰')">🥰</button>
+      <button class="flex-1 text-xl p-2 bg-[#FDFBF7] border border-[#EFEAE2] rounded-xl cursor-pointer transition-all active:scale-95 mood-btn" onclick="selectMood(this, '🤩')">🤩</button>
+      <button class="flex-1 text-xl p-2 bg-[#FDFBF7] border border-[#EFEAE2] rounded-xl cursor-pointer transition-all active:scale-95 mood-btn" onclick="selectMood(this, '🥱')">🥱</button>
+      <button class="flex-1 text-xl p-2 bg-[#FDFBF7] border border-[#EFEAE2] rounded-xl cursor-pointer transition-all active:scale-95 mood-btn" onclick="selectMood(this, '🥺')">🥺</button>
     </div>
-    <textarea class="w-full h-20 p-3.5 rounded-2xl border border-[#EFEAE2] bg-[#FDFBF7] text-sm text-sibylText outline-none resize-none box-border mt-3" id="moodNote" placeholder="今天過得怎麼樣？想跟爸爸媽媽分享什麼呢...？"></textarea>
-    <button class="w-full mt-3 p-4 bg-sibylSuccess text-sibylSuccessText font-bold rounded-2xl text-base shadow-[0_4px_15px_rgba(212,226,212,0.4)] border-none cursor-pointer" onclick="sendMood()">寫好了！送給爸媽 🎉</button>
+    <textarea class="w-full h-16 p-3 rounded-xl border border-[#EFEAE2] bg-[#FDFBF7] text-xs text-sibylText outline-none resize-none box-border mt-2" id="moodNote" placeholder="今天過得怎麼樣？想跟爸爸媽媽分享什麼呢...？"></textarea>
+    <button class="w-full mt-2.5 p-3.5 bg-sibylSuccess text-sibylSuccessText font-bold rounded-xl text-sm shadow-[0_4px_15px_rgba(212,226,212,0.4)] border-none cursor-pointer" onclick="sendMoodText()">寫好了！送給爸媽 🎉</button>
   </div>
 
   <!-- 🔒 家長驗證視圖 -->
-  <div class="w-full max-w-[480px] bg-white rounded-3xl p-8 shadow-[0_12px_40px_rgba(74,62,61,0.02)] box-border mb-5 border border-[#EFEAE2]/20" id="loginView" style="display: none;">
-    <h1 class="text-xl font-bold mb-5">🔐 進入家長管理後台</h1>
-    <div class="mb-4">
-      <label class="block text-sm font-semibold mb-1.5 text-[#6E5E5C]">請輸入家長管理密碼</label>
-      <input type="password" class="w-full p-3.5 rounded-2xl border border-[#EFEAE2] bg-[#FDFBF7] text-sm outline-none" id="parentPasswordInput" placeholder="請輸入密碼">
+  <div class="w-full max-w-[440px] bg-white rounded-3xl p-6 shadow-[0_12px_40px_rgba(74,62,61,0.02)] box-border mb-4 border border-[#EFEAE2]/20" id="loginView" style="display: none;">
+    <h1 class="text-base font-bold mb-4">🔐 進入家長管理後台</h1>
+    <div class="mb-3">
+      <label class="block text-xs font-semibold mb-1 text-[#6E5E5C]">請輸入家長管理密碼</label>
+      <input type="password" class="w-full p-3 rounded-xl border border-[#EFEAE2] bg-[#FDFBF7] text-xs outline-none" id="parentPasswordInput" placeholder="請輸入密碼">
     </div>
-    <div class="flex gap-3 mt-6">
-      <button class="w-full p-4 bg-[#EFEAE2] rounded-2xl font-semibold border-none cursor-pointer" onclick="switchView('child')">返回</button>
-      <button class="w-full p-4 bg-sibylMain rounded-2xl font-bold border-none cursor-pointer" onclick="verifyParentPassword()">驗證登入</button>
+    <div class="flex gap-2 mt-5">
+      <button class="w-full p-3 bg-[#EFEAE2] rounded-xl text-xs font-semibold border-none cursor-pointer" onclick="switchView('child')">返回</button>
+      <button class="w-full p-3 bg-sibylMain rounded-xl text-xs font-bold border-none cursor-pointer" onclick="verifyParentPassword()">驗證登入</button>
     </div>
   </div>
 
   <!-- 👩‍🦰 家長設置與監控視圖 -->
-  <div class="w-full max-w-[480px] bg-white rounded-3xl p-8 shadow-[0_12px_40px_rgba(74,62,61,0.02)] box-border mb-5 border border-[#EFEAE2]/20" id="parentView" style="display: none;">
-    <h1 class="text-xl font-bold mb-1">⚙️ 控制面板與進度監控</h1>
-    <div class="text-xs text-sibylMuted mb-6">同步資料中，變更後孩子端同步更新</div>
+  <div class="w-full max-w-[440px] bg-white rounded-3xl p-5 md:p-6 shadow-[0_12px_40px_rgba(74,62,61,0.02)] box-border mb-4 border border-[#EFEAE2]/20" id="parentView" style="display: none;">
+    <h1 class="text-base font-bold mb-1">⚙️ 控制面板與進度監控</h1>
+    <div class="text-[11px] text-sibylMuted mb-4">同步資料中，變更後孩子端同步更新</div>
     
-    <div class="bg-[#FDFBF7] p-4 rounded-2xl border border-[#EFEAE2] mb-6 text-sm">
-      <div class="font-semibold mb-2 text-sibylSuccessText">📈 今日即時狀態：</div>
+    <div class="bg-[#FDFBF7] p-3.5 rounded-xl border border-[#EFEAE2] mb-5 text-xs">
+      <div class="font-semibold mb-1.5 text-sibylSuccessText">📈 今日即時狀態：</div>
       <div class="mb-1">• 任務完成度：<span id="monProgress" class="font-bold">0%</span></div>
       <div class="mb-1">• 計時器狀態：<span id="monTimerState" class="font-bold">閒置</span> (<span id="monTimerLeft">--</span>)</div>
       <div class="mt-1.5 pt-1.5 border-t border-dashed border-[#EFEAE2]">
-        • 孩子今日心情：<span id="monMood" class="font-bold">無</span> <span id="monMoodNote" class="text-sibylMuted"></span>
+        • 心情狀態：<span id="monMood" class="font-bold">無</span> <span id="monMoodNote" class="text-sibylMuted ml-1"></span>
       </div>
     </div>
 
-    <div class="mb-4"><label class="block text-sm font-semibold mb-1.5 text-[#6E5E5C]">家長管理密碼</label><input type="text" class="w-full p-3.5 rounded-2xl border border-[#EFEAE2] bg-[#FDFBF7] text-sm" id="cfgPassword"></div>
-    <div class="mb-4"><label class="block text-sm font-semibold mb-1.5 text-[#6E5E5C]">孩子暱稱</label><input type="text" class="w-full p-3.5 rounded-2xl border border-[#EFEAE2] bg-[#FDFBF7] text-sm" id="cfgNickname"></div>
-    <div class="mb-4"><label class="block text-sm font-semibold mb-1.5 text-[#6E5E5C]">每日任務清單 (請以英文逗號隔開)</label><input type="text" class="w-full p-3.5 rounded-2xl border border-[#EFEAE2] bg-[#FDFBF7] text-sm" id="cfgTasks"></div>
-    <div class="mb-4"><label class="block text-sm font-semibold mb-1.5 text-[#6E5E5C]">計時項目名稱 (多個請以英文逗號隔開)</label><input type="text" class="w-full p-3.5 rounded-2xl border border-[#EFEAE2] bg-[#FDFBF7] text-sm" id="cfgTimerName"></div>
-    <div class="mb-4"><label class="block text-sm font-semibold mb-1.5 text-[#6E5E5C]">計時長度_分鐘 (對應多個項目請以逗號隔開)</label><input type="text" class="w-full p-3.5 rounded-2xl border border-[#EFEAE2] bg-[#FDFBF7] text-sm" id="cfgTimerMin"></div>
-    <div class="mb-4"><label class="block text-sm font-semibold mb-1.5 text-[#6E5E5C]">計時結束播報語</label><input type="text" class="w-full p-3.5 rounded-2xl border border-[#EFEAE2] bg-[#FDFBF7] text-sm" id="cfgAlertText"></div>
-    <div class="mb-4"><label class="block text-sm font-semibold mb-1.5 text-[#6E5E5C]">定時提醒時間 (例如 21:00)</label><input type="text" class="w-full p-3.5 rounded-2xl border border-[#EFEAE2] bg-[#FDFBF7] text-sm" id="cfgFixedTime"></div>
-    <div class="mb-4"><label class="block text-sm font-semibold mb-1.5 text-[#6E5E5C]">定時提醒語</label><input type="text" class="w-full p-3.5 rounded-2xl border border-[#EFEAE2] bg-[#FDFBF7] text-sm" id="cfgFixedText"></div>
+    <div class="space-y-3 text-xs">
+      <div><label class="block font-semibold mb-1 text-[#6E5E5C]">家長管理密碼</label><input type="text" class="w-full p-3 rounded-xl border border-[#EFEAE2] bg-[#FDFBF7]" id="cfgPassword"></div>
+      <div><label class="block font-semibold mb-1 text-[#6E5E5C]">孩子暱稱</label><input type="text" class="w-full p-3 rounded-xl border border-[#EFEAE2] bg-[#FDFBF7]" id="cfgNickname"></div>
+      <div><label class="block font-semibold mb-1 text-[#6E5E5C]">每日任務清單 (請以英文逗號隔開)</label><input type="text" class="w-full p-3 rounded-xl border border-[#EFEAE2] bg-[#FDFBF7]" id="cfgTasks"></div>
+      <div><label class="block font-semibold mb-1 text-[#6E5E5C]">計時項目名稱 (多個請以英文逗號隔開)</label><input type="text" class="w-full p-3 rounded-xl border border-[#EFEAE2] bg-[#FDFBF7]" id="cfgTimerName"></div>
+      <div><label class="block font-semibold mb-1 text-[#6E5E5C]">計時長度_分鐘 (對應多個項目請以逗號隔開)</label><input type="text" class="w-full p-3 rounded-xl border border-[#EFEAE2] bg-[#FDFBF7]" id="cfgTimerMin"></div>
+      <div><label class="block font-semibold mb-1 text-[#6E5E5C]">計時結束播報語</label><input type="text" class="w-full p-3 rounded-xl border border-[#EFEAE2] bg-[#FDFBF7]" id="cfgAlertText"></div>
+      <div><label class="block font-semibold mb-1 text-[#6E5E5C]">定時提醒時間 (例如 21:00)</label><input type="text" class="w-full p-3 rounded-xl border border-[#EFEAE2] bg-[#FDFBF7]" id="cfgFixedTime"></div>
+      <div><label class="block font-semibold mb-1 text-[#6E5E5C]">定時提醒語</label><input type="text" class="w-full p-3 rounded-xl border border-[#EFEAE2] bg-[#FDFBF7]" id="cfgFixedText"></div>
+    </div>
     
-    <div class="flex gap-3 mt-6">
-      <button class="w-full p-4 bg-[#EFEAE2] rounded-2xl font-semibold border-none cursor-pointer" onclick="switchView('child')">登出後台</button>
-      <button class="w-full p-4 bg-sibylMain rounded-2xl font-bold border-none cursor-pointer" id="btnSaveConfig" onclick="saveConfigToServer()">儲存並同步 💾</button>
+    <div class="flex gap-2 mt-5">
+      <button class="w-full p-3.5 bg-[#EFEAE2] rounded-xl text-xs font-semibold border-none cursor-pointer" onclick="switchView('child')">登出後台</button>
+      <button class="w-full p-3.5 bg-sibylMain rounded-xl text-xs font-bold border-none cursor-pointer" id="btnSaveConfig" onclick="saveConfigToServer()">儲存並同步 💾</button>
     </div>
   </div>
 
-  <div class="text-center mt-6 mb-4 text-sibylLight text-[11px] tracking-widest uppercase">
+  <div class="text-center mt-5 mb-3 text-sibylLight text-[10px] tracking-widest uppercase">
     Designed by <a href="https://www.heysibyl.com/" target="_blank" class="font-bold hover:underline">Sibyl | 數位管家</a>
   </div>
 
   <script>
-    // ⚠️【超級重要】：請在下方雙引號內，貼上妳剛剛在 GAS 發佈取得的「網頁應用程式網址」！
+    // ⚠️ 請在此處填入妳正確部署後的 GAS Exec 網址！
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz9zyKZdIPf4wwiG1QyFDC3FXwVPe12lYHRw5LYRqzaLs00h-fcAo5HiAjfqQgOSdfO/exec";
 
     let SPREADSHEET_ID = "";
@@ -162,6 +170,17 @@
     let selectedEmoji = "";
     let countdownInterval = null;
     let refreshInterval = null;
+    let isFixedAlertTriggered = false; // 防重複觸發標記
+
+    // 風格適配：美感按鈕色彩池陣列 (背景, 邊框, 文字)
+    const colorPalette = [
+      { bg: 'bg-[#F4EAE6]', border: 'border-[#E5D4CD]', text: 'text-[#AA6C59]' }, // 煙粉
+      { bg: 'bg-[#E4ECF4]', border: 'border-[#CEDCEB]', text: 'text-[#597B9A]' }, // 灰藍
+      { bg: 'bg-[#EBF3ED]', border: 'border-[#D6E6DC]', text: 'text-[#5E8B6E]' }, // 鼠尾草綠
+      { bg: 'bg-[#F8F1E5]', border: 'border-[#ECDCC4]', text: 'text-[#A08153]' }, // 燕麥
+      { bg: 'bg-[#F0ECF4]', border: 'border-[#E2DAEB]', text: 'text-[#7C5A99]' }, // 薰衣草紫
+      { bg: 'bg-[#F5F5F0]', border: 'border-[#E5E5DB]', text: 'text-[#7A7A66]' }  // 亞麻灰
+    ];
 
     function showSibylToast(message, type = "error") {
       const toast = document.getElementById('sibylToast');
@@ -181,7 +200,21 @@
       }, 4000);
     }
 
-    // 穿透與檢查 ID 邏輯
+    // 格式化宇宙時間為標準 HH:MM 格式
+    function formatTimeStr(rawStr) {
+      if (!rawStr) return "";
+      let s = String(rawStr).trim();
+      if (s.includes("T") && s.includes("Z")) {
+        try {
+          let tPart = s.split("T")[1].substring(0, 5); // 截取 HH:MM
+          let parts = tPart.split(":");
+          let hh = (parseInt(parts[0]) + 8) % 24; // 修正時區偏移量 (+8 小時)
+          return `${hh.toString().padStart(2, '0')}:${parts[1]}`;
+        } catch(e) { return s; }
+      }
+      return s;
+    }
+
     function checkLocalStorageAndUrl() {
       let localSavedId = localStorage.getItem('sibyl_saved_id');
       if (localSavedId && localSavedId.trim() !== "") {
@@ -189,11 +222,8 @@
         enableStartButton();
         return;
       }
-      
-      // 讀取網址列參數
       let urlParams = new URLSearchParams(window.location.search);
       SPREADSHEET_ID = urlParams.get('id');
-      
       if (SPREADSHEET_ID && SPREADSHEET_ID.trim() !== "") {
         localStorage.setItem('sibyl_saved_id', SPREADSHEET_ID);
         enableStartButton();
@@ -217,6 +247,7 @@
         showSibylToast("資料庫鎖定成功！✨", "success");
         enableStartButton();
       } else {
+        showManualInputBox();
         showSibylToast("網址格式不正確，請貼上完整試算表網址。");
       }
     }
@@ -234,7 +265,12 @@
 
     function unlockAudioAndLoad() {
       if (!SPREADSHEET_ID) { showSibylToast("尚未取得雲端資料庫 ID"); return; }
-      if ('speechSynthesis' in window) { window.speechSynthesis.speak(new SpeechSynthesisUtterance('')); }
+      // 穿透音訊解鎖限制
+      if ('speechSynthesis' in window) {
+        let u = new SpeechSynthesisUtterance('系統通訊啟動');
+        u.lang = 'zh-TW'; u.volume = 0;
+        window.speechSynthesis.speak(u);
+      }
       
       const overlay = document.getElementById('audioUnlockOverlay');
       overlay.classList.add('opacity-0', 'pointer-events-none');
@@ -242,14 +278,14 @@
       
       document.getElementById('childView').style.display = 'block';
       fetchDataFromServer();
-      refreshInterval = setInterval(fetchDataFromServer, 25000); 
+      refreshInterval = setInterval(fetchDataFromServer, 20000); 
     }
 
-    // 🚀【核心重寫】：使用純 Web fetch 機制與後端通訊，破除 Google 阻斷
     function call母艦API(dataObject, successCallback) {
       dataObject.spreadsheetId = SPREADSHEET_ID;
       fetch(GAS_API_URL, {
         method: "POST",
+        mode: "cors",
         body: JSON.stringify(dataObject)
       })
       .then(res => res.json())
@@ -257,11 +293,11 @@
         if(res.success) {
           if(successCallback) successCallback(res);
         } else {
-          showSibylToast("母艦邏輯錯誤: " + res.message);
+          showSibylToast("母艦回傳錯誤: " + res.message);
         }
       })
       .catch(err => {
-        showSibylToast("網路連線逾時，請確認試算表編輯權限已對「任何人」開放。");
+        showSibylToast("後端通道尚未就緒，請檢查程式碼中 GAS 網址是否正確貼上。");
       });
     }
 
@@ -276,6 +312,7 @@
     function renderPageElements() {
       document.getElementById('txtGreeting').innerText = `哈囉，${globalConfig['孩子暱稱'] || '寶貝'}`;
       
+      // 修復：今日任務本地持久化渲染
       const container = document.getElementById('taskListContainer');
       container.innerHTML = "";
       const taskRaw = globalConfig['每日任務清單'] || "";
@@ -290,21 +327,22 @@
       }
 
       if(taskArray.length === 0) {
-        container.innerHTML = `<div class="text-center text-sibylMuted text-sm py-4">設定台尚未配置今日任務唷。</div>`;
+        container.innerHTML = `<div class="text-center text-sibylMuted text-xs py-4">後台尚未配置今日任務唷。</div>`;
       }
 
       taskArray.forEach(task => {
         const isDone = statusMap[task] === "已完成";
         const div = document.createElement('div');
-        div.className = `flex items-center p-4 rounded-2xl cursor-pointer transition-all border ${isDone ? 'bg-sibylSuccess border-[#C2D3C2] text-sibylSuccessText' : 'bg-[#FDFBF7] border-[#EFEAE2]'}`;
+        div.className = `flex items-center p-3.5 rounded-2xl cursor-pointer transition-all border ${isDone ? 'bg-sibylSuccess border-[#C2D3C2] text-sibylSuccessText' : 'bg-[#FDFBF7] border-[#EFEAE2]'}`;
         const chkClass = isDone ? 'border-sibylSuccessText bg-sibylSuccessText text-white' : 'border-[#D1C7BD] bg-white';
         const chkInner = isDone ? '✓' : '';
         
-        div.innerHTML = `<div class="w-5 h-5 border-2 rounded-md mr-3 flex items-center justify-center font-bold text-xs ${chkClass}">${chkInner}</div><span class="font-medium">今日［${task}］已完成</span>`;
+        div.innerHTML = `<div class="w-5 h-5 border-2 rounded-md mr-3 flex items-center justify-center font-bold text-xs flex-shrink-0 ${chkClass}">${chkInner}</div><span class="font-medium text-xs">［${task}］${isDone ? '已經完成囉！' : '尚未完成'}</span>`;
         div.onclick = function() { toggleTaskStatus(task, isDone, taskArray); };
         container.appendChild(div);
       });
 
+      // 修正：計時器項目渲染並適配美感不同顏色池
       if (!countdownInterval) {
         const btnContainer = document.getElementById('timerBtnGridContainer');
         btnContainer.innerHTML = "";
@@ -314,18 +352,26 @@
         names.forEach((name, idx) => {
           const mLen = mins[idx] || "40";
           const btn = document.createElement('button');
-          btn.className = "p-3.5 bg-[#FDFBF7] border border-[#EFEAE2] rounded-xl font-bold text-sm text-sibylText cursor-pointer hover:bg-sibylMain/40 active:scale-95 transition-all btn-timer-item";
-          btn.innerText = `開始［${name}］${mLen}分`;
+          // 從調色盤中循環取得專屬花色組
+          const styleSet = colorPalette[idx % colorPalette.length];
+          btn.className = `p-3 border ${styleSet.border} ${styleSet.bg} ${styleSet.text} rounded-xl font-bold text-xs cursor-pointer active:scale-95 transition-all btn-timer-item flex flex-col items-center justify-center gap-0.5`;
+          btn.innerHTML = `<span class="opacity-80">${name}</span><span class="text-[10px] font-normal font-mono opacity-90">倒數 ${mLen} 分鐘</span>`;
           btn.onclick = function() { startTimerSession(name, parseInt(mLen)); };
           btnContainer.appendChild(btn);
         });
       }
 
+      // 家長後台即時狀態強制同步刷新
       document.getElementById('monProgress').innerText = globalStatus['今日任務達成率'] || '0%';
       document.getElementById('monTimerState').innerText = globalStatus['計時狀態'] || '閒置';
       document.getElementById('monTimerLeft').innerText = globalStatus['計時剩餘時間'] || '--';
       document.getElementById('monMood').innerText = globalStatus['今日心情 Emoji'] || '未填';
       document.getElementById('monMoodNote').innerText = globalStatus['今日心情留言'] || '';
+      
+      // 渲染家長控制面板時轉換清除宇宙時間格式
+      if (document.getElementById('parentView').style.display === 'block') {
+        document.getElementById('cfgFixedTime').value = formatTimeStr(globalConfig['定時提醒時間']);
+      }
       
       checkFixedTimeAlert();
     }
@@ -333,9 +379,8 @@
     function toggleTaskStatus(targetTask, currentDone, allTasks) {
       const statusMap = {};
       allTasks.forEach(t => { statusMap[t] = "未完成"; });
-      if (globalStatus['currentlyStatus'] || globalStatus['目前勾選狀態']) {
-        const rawStr = globalStatus['目前勾選狀態'] || "";
-        rawStr.split(',').forEach(item => {
+      if (globalStatus['目前勾選狀態']) {
+        globalStatus['目前勾選狀態'].split(',').forEach(item => {
           const parts = item.split(':');
           if(parts.length === 2) statusMap[parts[0].trim()] = parts[1].trim();
         });
@@ -355,16 +400,42 @@
       globalStatus['今日任務達成率'] = progressPercent + "%";
       renderPageElements();
 
-      call母艦API({ action: "updateTask", taskString: taskString, progressPercent: progressPercent });
+      // 同步發送儲存到 TodayStatus 欄位
+      call母艦API({ action: "updateTask", taskString: taskString, progressPercent: progressPercent + "%" });
     }
 
+    // 心情 Emoji 按鈕點選：立即寫入 TodayStatus 
+    function selectMood(element, emoji) {
+      document.querySelectorAll('.mood-btn').forEach(b => b.className = b.className.replace(' bg-sibylMain border-sibylLight font-bold', ''));
+      element.className += ' bg-sibylMain border-sibylLight font-bold';
+      selectedEmoji = emoji;
+      
+      // 需求：心情圖示按下一秒鐘內立即更新同步回後端 TodayStatus
+      call母艦API({ action: "submitMood", emoji: selectedEmoji, message: document.getElementById('moodNote').value });
+      showSibylToast("心情符號已記錄！✨", "success");
+    }
+
+    // 心情文字留言區：需點擊按鈕才送出寫入
+    function sendMoodText() {
+      const note = document.getElementById('moodNote').value;
+      if (!selectedEmoji) { showSibylToast("請先挑選上方一個心情小幫手 Emoji 唷！"); return; }
+      call母艦API({ action: "submitMood", emoji: selectedEmoji, message: note }, function() {
+        showSibylToast("心情日記已成功送達家長控制台！🥰", "success");
+        document.getElementById('moodNote').value = "";
+        document.querySelectorAll('.mood-btn').forEach(b => b.className = b.className.replace(' bg-sibylMain border-sibylLight font-bold', ''));
+        selectedEmoji = "";
+        fetchDataFromServer();
+      });
+    }
+
+    // 計時提醒管理：執行倒數計時會話
     function startTimerSession(name, minutes) {
       if (countdownInterval) clearInterval(countdownInterval);
       document.getElementById('currentTimerItemName').innerText = `正在計時項目：［${name}］`;
       let totalSeconds = minutes * 60;
       
       document.querySelectorAll('.btn-timer-item').forEach(b => b.disabled = true);
-      call母艦API({ action: "log", actionType: "發起計時", detail: `設備開始［${name}］${minutes}分倒數。` });
+      call母艦API({ action: "updateTimer", timerState: `運作［${name}］`, remainingTime: `${minutes}分0秒` });
 
       countdownInterval = setInterval(function() {
         totalSeconds--;
@@ -372,7 +443,7 @@
         let s = totalSeconds % 60;
         document.getElementById('txtCountdown').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 
-        if (totalSeconds % 10 === 0) {
+        if (totalSeconds % 15 === 0) {
           call母艦API({ action: "updateTimer", timerState: `運作［${name}］`, remainingTime: `${m}分${s}秒` });
         }
 
@@ -380,69 +451,69 @@
           clearInterval(countdownInterval);
           countdownInterval = null;
           document.querySelectorAll('.btn-timer-item').forEach(b => b.disabled = false);
-          document.getElementById('currentTimerItemName').innerText = "計時終了！";
-          triggerVisualAndAudioBombing(globalConfig['計時結束播報語'] || "時間到了，起來走走吧");
+          document.getElementById('txtCountdown').innerText = "00:00";
+          document.getElementById('currentTimerItemName').innerText = "計時完成！";
+          
+          // 觸發效果：定時器時間到亦執行爆閃、震動、播報
+          triggerVisualAndAudioBombing(globalConfig['計時結束播報語'] || "計時時間到囉，快來看看控制面板");
         }
       }, 1000);
     }
 
+    // 核心修復：視覺震撼爆閃 + 震動功能 + 修正語音廣播
     function triggerVisualAndAudioBombing(txtText) {
-      if ('vibrate' in navigator) navigator.vibrate([500, 300, 500, 300, 500]); 
-      const timerBox = document.getElementById('timerBox');
-      timerBox.classList.add('bombing-mode');
+      // 觸發手機硬體 Vibrate 震動
+      if ('vibrate' in navigator) {
+        navigator.vibrate([400, 200, 400, 200, 400, 200, 400]); 
+      }
+      
+      // 螢幕全面連環爆閃
+      const box = document.getElementById('timerBox');
+      const body = document.getElementById('mainBody');
+      box.classList.add('bombing-mode');
+      body.classList.add('bombing-body');
 
+      // 強制不間斷語音廣播播報
       if ('speechSynthesis' in window) {
-        for(let i = 0; i < 3; i++) {
+        window.speechSynthesis.cancel(); // 清空排隊
+        for(let i = 0; i < 4; i++) {
           let u = new SpeechSynthesisUtterance(txtText);
-          u.lang = 'zh-TW'; u.rate = 0.95;
+          u.lang = 'zh-TW'; 
+          u.rate = 0.9; 
+          u.volume = 1.0;
           window.speechSynthesis.speak(u);
         }
       }
 
-      call母艦API({ action: "updateTimer", timerState: "強制提醒轟炸中", remainingTime: "0分0秒" });
+      call母艦API({ action: "updateTimer", timerState: "強制提醒發動中", remainingTime: "0分0秒" });
+      
+      // 爆閃模式維持 45 秒後自動解除恢復正常
       setTimeout(function() {
-        timerBox.classList.remove('bombing-mode');
+        box.classList.remove('bombing-mode');
+        body.classList.remove('bombing-body');
         call母艦API({ action: "updateTimer", timerState: "閒置", remainingTime: "" });
-      }, 60000);
+        isFixedAlertTriggered = false;
+      }, 45000);
     }
 
+    // 核心修復：定時提醒比對邏輯與防卡死
     function checkFixedTimeAlert() {
       if(!globalConfig['定時提醒時間']) return;
+      const cleanTargetTime = formatTimeStr(globalConfig['定時提醒時間']); // 轉換排除宇宙時間
+      
       const now = new Date();
       const currentHHMM = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-      if (currentHHMM === String(globalConfig['定時提醒時間']).trim() && globalStatus['計時狀態'] !== "定時提醒中") {
-        call母艦API({ action: "updateTimer", timerState: "定時提醒中", remainingTime: "5分鐘準備" });
-        let countdownSec = 300; 
-        document.getElementById('currentTimerItemName').innerText = "⚠️ 家長設定強制提醒 ⚠️";
-        let fixedInterval = setInterval(function() {
-          countdownSec--;
-          let m = Math.floor(countdownSec / 60);
-          let s = countdownSec % 60;
-          document.getElementById('txtCountdown').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-          if (countdownSec <= 0) {
-            clearInterval(fixedInterval);
-            triggerVisualAndAudioBombing(globalConfig['定時提醒語'] || "時間到了！");
-          }
-        }, 1000);
+      
+      // 精準比對目前的分鐘，並且防止一分鐘之內重複呼叫
+      if (currentHHMM === cleanTargetTime && !isFixedAlertTriggered) {
+        isFixedAlertTriggered = true;
+        
+        call母艦API({ action: "updateTimer", timerState: "定時提醒發動", remainingTime: "準備中" });
+        document.getElementById('currentTimerItemName').innerText = "⚠️ 家長排定強制提醒 ⚠️";
+        
+        // 執行爆閃、語音、震動效果
+        triggerVisualAndAudioBombing(globalConfig['定時提醒語'] || "家長提醒時間到了！");
       }
-    }
-
-    function selectMood(element, emoji) {
-      document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected', 'bg-sibylMain', 'border-sibylLight'));
-      element.classList.add('selected', 'bg-sibylMain', 'border-sibylLight');
-      selectedEmoji = emoji;
-    }
-
-    function sendMood() {
-      const note = document.getElementById('moodNote').value;
-      if (!selectedEmoji) { showSibylToast("請先選一個心情小幫手唷！"); return; }
-      call母艦API({ action: "submitMood", emoji: selectedEmoji, message: note }, function() {
-        showSibylToast("日記成功送達家長控制台！🥰", "success");
-        document.getElementById('moodNote').value = "";
-        document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected', 'bg-sibylMain', 'border-sibylLight'));
-        selectedEmoji = "";
-        fetchDataFromServer();
-      });
     }
 
     function switchView(viewName) {
@@ -459,7 +530,7 @@
         document.getElementById('cfgTimerName').value = globalConfig['計時項目名稱'] || "";
         document.getElementById('cfgTimerMin').value = globalConfig['計時長度_分鐘'] || "";
         document.getElementById('cfgAlertText').value = globalConfig['計時結束播報語'] || "";
-        document.getElementById('cfgFixedTime').value = globalConfig['定時提醒時間'] || "";
+        document.getElementById('cfgFixedTime').value = formatTimeStr(globalConfig['定時提醒時間']);
         document.getElementById('cfgFixedText').value = globalConfig['定時提醒語'] || "";
       }
     }
@@ -470,7 +541,7 @@
         document.getElementById('parentPasswordInput').value = "";
         switchView('parent');
       } else {
-        showSibylToast("❌ 管理密碼核對錯誤！");
+        showSibylToast("管理密碼比對核對錯誤！");
       }
     }
 
@@ -488,7 +559,7 @@
         fixedText: document.getElementById('cfgFixedText').value
       }, function() {
         document.getElementById('btnSaveConfig').disabled = false;
-        showSibylToast("設定更新完畢！母艦同步成功。", "success");
+        showSibylToast("後台設定儲存成功！大腦同步完成。", "success");
         fetchDataFromServer();
         switchView('child');
       });
