@@ -2,10 +2,8 @@
 <html class="h-full select-none text-[15px]">
 <head>
   <meta charset="UTF-8">
-  <!-- 修正響應式：加入手機版必備 Viewport -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>今日時間管理工具</title>
-  <!-- 導入 Tailwind CSS 3.4 -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -26,7 +24,7 @@
     }
   </script>
   <style>
-    /* 螢幕爆閃模式改為全螢幕，效果更強烈 */
+    /* 螢幕震撼全畫面爆閃效果 */
     .bombing-mode { animation: flashBomb 0.15s infinite alternate !important; }
     @keyframes flashBomb { 0% { background-color: #FFC4C4 !important; } 100% { background-color: #FFFFFF !important; } }
     .bombing-body { animation: bodyBomb 0.15s infinite alternate !important; }
@@ -89,7 +87,6 @@
     <div class="bg-[#FDFBF7] p-4 md:p-5 rounded-3xl border border-[#EFEAE2] text-center mb-5 transition-all" id="timerBox">
       <div class="text-xs text-sibylMuted mb-1" id="currentTimerItemName">請選擇下方項目開始計時</div>
       <div class="text-4xl md:text-5xl font-bold tracking-wider mb-3 font-mono text-sibylText" id="txtCountdown">00:00</div>
-      <!-- 計時項目按鈕網格 -->
       <div class="grid grid-cols-2 gap-2 mt-2" id="timerBtnGridContainer"></div>
     </div>
     
@@ -103,10 +100,10 @@
     
     <div class="text-sm font-semibold mb-2 flex items-center gap-1.5">🥰 今天的心情收件夾</div>
     <div class="flex justify-between gap-1.5 mt-2">
-      <button class="flex-1 text-xl p-2 bg-[#FDFBF7] border border-[#EFEAE2] rounded-xl cursor-pointer transition-all active:scale-95 mood-btn" onclick="selectMood(this, '🥰')">🥰</button>
-      <button class="flex-1 text-xl p-2 bg-[#FDFBF7] border border-[#EFEAE2] rounded-xl cursor-pointer transition-all active:scale-95 mood-btn" onclick="selectMood(this, '🤩')">🤩</button>
-      <button class="flex-1 text-xl p-2 bg-[#FDFBF7] border border-[#EFEAE2] rounded-xl cursor-pointer transition-all active:scale-95 mood-btn" onclick="selectMood(this, '🥱')">🥱</button>
-      <button class="flex-1 text-xl p-2 bg-[#FDFBF7] border border-[#EFEAE2] rounded-xl cursor-pointer transition-all active:scale-95 mood-btn" onclick="selectMood(this, '🥺')">🥺</button>
+      <button class="flex-1 text-xl p-2 bg-[#FDFBF7] border border-[#EFEAE2] rounded-xl cursor-pointer transition-all active:scale-95 mood-btn" id="emoji-🥰" onclick="selectMood(this, '🥰')">🥰</button>
+      <button class="flex-1 text-xl p-2 bg-[#FDFBF7] border border-[#EFEAE2] rounded-xl cursor-pointer transition-all active:scale-95 mood-btn" id="emoji-🤩" onclick="selectMood(this, '🤩')">🤩</button>
+      <button class="flex-1 text-xl p-2 bg-[#FDFBF7] border border-[#EFEAE2] rounded-xl cursor-pointer transition-all active:scale-95 mood-btn" id="emoji-🥱" onclick="selectMood(this, '🥱')">🥱</button>
+      <button class="flex-1 text-xl p-2 bg-[#FDFBF7] border border-[#EFEAE2] rounded-xl cursor-pointer transition-all active:scale-95 mood-btn" id="emoji-🥺" onclick="selectMood(this, '🥺')">🥺</button>
     </div>
     <textarea class="w-full h-16 p-3 rounded-xl border border-[#EFEAE2] bg-[#FDFBF7] text-xs text-sibylText outline-none resize-none box-border mt-2" id="moodNote" placeholder="今天過得怎麼樣？想跟爸爸媽媽分享什麼呢...？"></textarea>
     <button class="w-full mt-2.5 p-3.5 bg-sibylSuccess text-sibylSuccessText font-bold rounded-xl text-sm shadow-[0_4px_15px_rgba(212,226,212,0.4)] border-none cursor-pointer" onclick="sendMoodText()">寫好了！送給爸媽 🎉</button>
@@ -145,7 +142,7 @@
       <div><label class="block font-semibold mb-1 text-[#6E5E5C]">每日任務清單 (請以英文逗號隔開)</label><input type="text" class="w-full p-3 rounded-xl border border-[#EFEAE2] bg-[#FDFBF7]" id="cfgTasks"></div>
       <div><label class="block font-semibold mb-1 text-[#6E5E5C]">計時項目名稱 (多個請以英文逗號隔開)</label><input type="text" class="w-full p-3 rounded-xl border border-[#EFEAE2] bg-[#FDFBF7]" id="cfgTimerName"></div>
       <div><label class="block font-semibold mb-1 text-[#6E5E5C]">計時長度_分鐘 (對應多個項目請以逗號隔開)</label><input type="text" class="w-full p-3 rounded-xl border border-[#EFEAE2] bg-[#FDFBF7]" id="cfgTimerMin"></div>
-      <div><label class="block font-semibold mb-1 text-[#6E5E5C]">計時結束播報語</label><input type="text" class="w-full p-3 rounded-xl border border-[#EFEAE2] bg-[#FDFBF7]" id="cfgAlertText"></div>
+      <div><label class="block font-semibold mb-1 text-[#6E5E5C]">計時結束播報語</label><input type="text" class="w-full p-3 rounded-xl border border-[#EFEAE2] bg-[#FDFBF7]" id="cfgAlertText" placeholder="不填則預設說：時間到了！"></div>
       <div><label class="block font-semibold mb-1 text-[#6E5E5C]">定時提醒時間 (例如 21:00)</label><input type="text" class="w-full p-3 rounded-xl border border-[#EFEAE2] bg-[#FDFBF7]" id="cfgFixedTime"></div>
       <div><label class="block font-semibold mb-1 text-[#6E5E5C]">定時提醒語</label><input type="text" class="w-full p-3 rounded-xl border border-[#EFEAE2] bg-[#FDFBF7]" id="cfgFixedText"></div>
     </div>
@@ -161,8 +158,7 @@
   </div>
 
   <script>
-    // ⚠️ 請在此處填入妳正確部署後的 GAS Exec 網址！
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz9zyKZdIPf4wwiG1QyFDC3FXwVPe12lYHRw5LYRqzaLs00h-fcAo5HiAjfqQgOSdfO/exec";
+    const GAS_API_URL = "請貼上妳的GAS網頁應用程式部署網址";
 
     let SPREADSHEET_ID = "";
     let globalConfig = {};
@@ -170,16 +166,15 @@
     let selectedEmoji = "";
     let countdownInterval = null;
     let refreshInterval = null;
-    let isFixedAlertTriggered = false; // 防重複觸發標記
+    let isFixedAlertTriggered = false; 
+    let isSyncing = false; // 關鍵鎖：避免非同步請求打架將狀態刷掉
 
-    // 風格適配：美感按鈕色彩池陣列 (背景, 邊框, 文字)
     const colorPalette = [
-      { bg: 'bg-[#F4EAE6]', border: 'border-[#E5D4CD]', text: 'text-[#AA6C59]' }, // 煙粉
-      { bg: 'bg-[#E4ECF4]', border: 'border-[#CEDCEB]', text: 'text-[#597B9A]' }, // 灰藍
-      { bg: 'bg-[#EBF3ED]', border: 'border-[#D6E6DC]', text: 'text-[#5E8B6E]' }, // 鼠尾草綠
-      { bg: 'bg-[#F8F1E5]', border: 'border-[#ECDCC4]', text: 'text-[#A08153]' }, // 燕麥
-      { bg: 'bg-[#F0ECF4]', border: 'border-[#E2DAEB]', text: 'text-[#7C5A99]' }, // 薰衣草紫
-      { bg: 'bg-[#F5F5F0]', border: 'border-[#E5E5DB]', text: 'text-[#7A7A66]' }  // 亞麻灰
+      { bg: 'bg-[#F4EAE6]', border: 'border-[#E5D4CD]', text: 'text-[#AA6C59]' }, 
+      { bg: 'bg-[#E4ECF4]', border: 'border-[#CEDCEB]', text: 'text-[#597B9A]' }, 
+      { bg: 'bg-[#EBF3ED]', border: 'border-[#D6E6DC]', text: 'text-[#5E8B6E]' }, 
+      { bg: 'bg-[#F8F1E5]', border: 'border-[#ECDCC4]', text: 'text-[#A08153]' }, 
+      { bg: 'bg-[#F0ECF4]', border: 'border-[#E2DAEB]', text: 'text-[#7C5A99]' }
     ];
 
     function showSibylToast(message, type = "error") {
@@ -200,15 +195,14 @@
       }, 4000);
     }
 
-    // 格式化宇宙時間為標準 HH:MM 格式
     function formatTimeStr(rawStr) {
       if (!rawStr) return "";
       let s = String(rawStr).trim();
       if (s.includes("T") && s.includes("Z")) {
         try {
-          let tPart = s.split("T")[1].substring(0, 5); // 截取 HH:MM
+          let tPart = s.split("T")[1].substring(0, 5); 
           let parts = tPart.split(":");
-          let hh = (parseInt(parts[0]) + 8) % 24; // 修正時區偏移量 (+8 小時)
+          let hh = (parseInt(parts[0]) + 8) % 24; 
           return `${hh.toString().padStart(2, '0')}:${parts[1]}`;
         } catch(e) { return s; }
       }
@@ -265,10 +259,16 @@
 
     function unlockAudioAndLoad() {
       if (!SPREADSHEET_ID) { showSibylToast("尚未取得雲端資料庫 ID"); return; }
-      // 穿透音訊解鎖限制
+      
+      // 請求推播權限（穿透手機休眠、鎖屏的唯一硬實力）
+      if ('Notification' in window) {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') console.log('通知權限已開通');
+        });
+      }
+
       if ('speechSynthesis' in window) {
-        let u = new SpeechSynthesisUtterance('系統通訊啟動');
-        u.lang = 'zh-TW'; u.volume = 0;
+        let u = new SpeechSynthesisUtterance('');
         window.speechSynthesis.speak(u);
       }
       
@@ -278,7 +278,8 @@
       
       document.getElementById('childView').style.display = 'block';
       fetchDataFromServer();
-      refreshInterval = setInterval(fetchDataFromServer, 20000); 
+      // 固定定時自動刷新
+      refreshInterval = setInterval(fetchDataFromServer, 15000); 
     }
 
     function call母艦API(dataObject, successCallback) {
@@ -297,11 +298,14 @@
         }
       })
       .catch(err => {
-        showSibylToast("後端通道尚未就緒，請檢查程式碼中 GAS 網址是否正確貼上。");
+        showSibylToast("同步失敗，請確認 GAS 部署網址是否正確。");
       });
     }
 
     function fetchDataFromServer() {
+      // 正在與用戶端上傳互動時，暫停定時刷新的覆蓋，保護打勾不消失
+      if (isSyncing) return; 
+
       call母艦API({ action: "loadAll" }, function(res) {
         globalConfig = res.settings;
         globalStatus = res.status;
@@ -312,7 +316,6 @@
     function renderPageElements() {
       document.getElementById('txtGreeting').innerText = `哈囉，${globalConfig['孩子暱稱'] || '寶貝'}`;
       
-      // 修復：今日任務本地持久化渲染
       const container = document.getElementById('taskListContainer');
       container.innerHTML = "";
       const taskRaw = globalConfig['每日任務清單'] || "";
@@ -342,7 +345,6 @@
         container.appendChild(div);
       });
 
-      // 修正：計時器項目渲染並適配美感不同顏色池
       if (!countdownInterval) {
         const btnContainer = document.getElementById('timerBtnGridContainer');
         btnContainer.innerHTML = "";
@@ -352,7 +354,6 @@
         names.forEach((name, idx) => {
           const mLen = mins[idx] || "40";
           const btn = document.createElement('button');
-          // 從調色盤中循環取得專屬花色組
           const styleSet = colorPalette[idx % colorPalette.length];
           btn.className = `p-3 border ${styleSet.border} ${styleSet.bg} ${styleSet.text} rounded-xl font-bold text-xs cursor-pointer active:scale-95 transition-all btn-timer-item flex flex-col items-center justify-center gap-0.5`;
           btn.innerHTML = `<span class="opacity-80">${name}</span><span class="text-[10px] font-normal font-mono opacity-90">倒數 ${mLen} 分鐘</span>`;
@@ -361,14 +362,20 @@
         });
       }
 
-      // 家長後台即時狀態強制同步刷新
+      // 同步刷新家長監控控制面板數值
       document.getElementById('monProgress').innerText = globalStatus['今日任務達成率'] || '0%';
       document.getElementById('monTimerState').innerText = globalStatus['計時狀態'] || '閒置';
       document.getElementById('monTimerLeft').innerText = globalStatus['計時剩餘時間'] || '--';
       document.getElementById('monMood').innerText = globalStatus['今日心情 Emoji'] || '未填';
       document.getElementById('monMoodNote').innerText = globalStatus['今日心情留言'] || '';
       
-      // 渲染家長控制面板時轉換清除宇宙時間格式
+      // 更新心情 Emoji 高亮按鈕選取固定
+      document.querySelectorAll('.mood-btn').forEach(b => b.className = b.className.replace(' bg-sibylMain border-sibylLight font-bold', ''));
+      if(globalStatus['今日心情 Emoji']) {
+        const activeBtn = document.getElementById(`emoji-${globalStatus['今日心情 Emoji']}`);
+        if(activeBtn) activeBtn.className += ' bg-sibylMain border-sibylLight font-bold';
+      }
+
       if (document.getElementById('parentView').style.display === 'block') {
         document.getElementById('cfgFixedTime').value = formatTimeStr(globalConfig['定時提醒時間']);
       }
@@ -376,17 +383,21 @@
       checkFixedTimeAlert();
     }
 
+    // 樂觀更新控制：按下立即鎖定畫面渲染，保證當天固定不跳掉
     function toggleTaskStatus(targetTask, currentDone, allTasks) {
+      isSyncing = true; // 開啟通訊鎖
       const statusMap = {};
       allTasks.forEach(t => { statusMap[t] = "未完成"; });
-      if (globalStatus['目前勾選狀態']) {
-        globalStatus['目前勾選狀態'].split(',').forEach(item => {
+      if (globalStatus['currentlyStatus'] || globalStatus['currentlyStatus'] !== undefined || globalStatus['目前勾選狀態']) {
+        (globalStatus['目前勾選狀態'] || "").split(',').forEach(item => {
           const parts = item.split(':');
           if(parts.length === 2) statusMap[parts[0].trim()] = parts[1].trim();
         });
       }
-      statusMap[targetTask] = currentDone ? "未完成" : "已完成";
       
+      statusMap[targetTask] = currentDone ? "未完成" : "Macro已完成"; // 狀態翻轉
+      statusMap[targetTask] = statusMap[targetTask] === "Macro已完成" ? "已完成" : "未完成";
+
       let doneCount = 0;
       let statusStringArray = [];
       allTasks.forEach(t => {
@@ -396,39 +407,53 @@
       const progressPercent = Math.round((doneCount / allTasks.length) * 100);
       const taskString = statusStringArray.join(', ');
 
+      // 畫面立即渲染（樂觀固定）
       globalStatus['目前勾選狀態'] = taskString;
       globalStatus['今日任務達成率'] = progressPercent + "%";
       renderPageElements();
 
-      // 同步發送儲存到 TodayStatus 欄位
-      call母艦API({ action: "updateTask", taskString: taskString, progressPercent: progressPercent + "%" });
+      // 上傳給母艦並更新 TodayStatus
+      call母艦API({ 
+        action: "updateTask", 
+        taskString: taskString, 
+        progressPercent: progressPercent + "%" 
+      }, function() {
+        isSyncing = false; // 解除通訊鎖，完成對齊
+      });
     }
 
-    // 心情 Emoji 按鈕點選：立即寫入 TodayStatus 
+    // 心情 Emoji 按鈕點選：立即鎖定寫入 TodayStatus 
     function selectMood(element, emoji) {
+      isSyncing = true;
       document.querySelectorAll('.mood-btn').forEach(b => b.className = b.className.replace(' bg-sibylMain border-sibylLight font-bold', ''));
       element.className += ' bg-sibylMain border-sibylLight font-bold';
       selectedEmoji = emoji;
       
-      // 需求：心情圖示按下一秒鐘內立即更新同步回後端 TodayStatus
-      call母艦API({ action: "submitMood", emoji: selectedEmoji, message: document.getElementById('moodNote').value });
-      showSibylToast("心情符號已記錄！✨", "success");
+      globalStatus['今日心情 Emoji'] = emoji;
+      
+      call母艦API({ 
+        action: "submitMood", 
+        emoji: selectedEmoji, 
+        message: document.getElementById('moodNote').value 
+      }, function() {
+        isSyncing = false;
+        showSibylToast("今日心情符號已同步！✨", "success");
+      });
     }
 
-    // 心情文字留言區：需點擊按鈕才送出寫入
+    // 心情文字留言區：需點擊按鈕才送出
     function sendMoodText() {
       const note = document.getElementById('moodNote').value;
       if (!selectedEmoji) { showSibylToast("請先挑選上方一個心情小幫手 Emoji 唷！"); return; }
+      isSyncing = true;
       call母艦API({ action: "submitMood", emoji: selectedEmoji, message: note }, function() {
+        isSyncing = false;
         showSibylToast("心情日記已成功送達家長控制台！🥰", "success");
         document.getElementById('moodNote').value = "";
-        document.querySelectorAll('.mood-btn').forEach(b => b.className = b.className.replace(' bg-sibylMain border-sibylLight font-bold', ''));
-        selectedEmoji = "";
         fetchDataFromServer();
       });
     }
 
-    // 計時提醒管理：執行倒數計時會話
     function startTimerSession(name, minutes) {
       if (countdownInterval) clearInterval(countdownInterval);
       document.getElementById('currentTimerItemName').innerText = `正在計時項目：［${name}］`;
@@ -454,65 +479,76 @@
           document.getElementById('txtCountdown').innerText = "00:00";
           document.getElementById('currentTimerItemName').innerText = "計時完成！";
           
-          // 觸發效果：定時器時間到亦執行爆閃、震動、播報
-          triggerVisualAndAudioBombing(globalConfig['計時結束播報語'] || "計時時間到囉，快來看看控制面板");
+          // 修正：手動計時器歸零播報文字內容：『時間到了！』說四次
+          let speakTxt = globalConfig['計時結束播報語'] ? globalConfig['計時結束播報語'].trim() : "";
+          if(!speakTxt) {
+            speakTxt = "時間到了！時間到了！時間到了！時間到了！";
+          }
+          triggerVisualAndAudioBombing("⏰ 計時任務終了", speakTxt);
         }
       }, 1000);
     }
 
-    // 核心修復：視覺震撼爆閃 + 震動功能 + 修正語音廣播
-    function triggerVisualAndAudioBombing(txtText) {
-      // 觸發手機硬體 Vibrate 震動
+    // 雙重計時炸彈：支援鎖屏點亮穿透 + 爆閃 + 震動 + 四遍廣播
+    function triggerVisualAndAudioBombing(title, speakText) {
+      // 1. 穿透休眠與螢幕鎖屏：發送系統級通知點亮螢幕、引導震動
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(title, {
+          body: speakText,
+          icon: 'https://cdn-icons-png.flaticon.com/512/3652/3652191.png',
+          vibrate: [300, 100, 300, 100, 300, 100, 300] // 引導手機原生硬體震動
+        });
+      }
+
+      // 2. 觸發網頁前台硬體 Vibrate 震動
       if ('vibrate' in navigator) {
         navigator.vibrate([400, 200, 400, 200, 400, 200, 400]); 
       }
       
-      // 螢幕全面連環爆閃
+      // 3. 螢幕全畫面連環爆閃
       const box = document.getElementById('timerBox');
       const body = document.getElementById('mainBody');
       box.classList.add('bombing-mode');
       body.classList.add('bombing-body');
 
-      // 強制不間斷語音廣播播報
+      // 4. 真人中文語音合成廣播
       if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel(); // 清空排隊
-        for(let i = 0; i < 4; i++) {
-          let u = new SpeechSynthesisUtterance(txtText);
-          u.lang = 'zh-TW'; 
-          u.rate = 0.9; 
-          u.volume = 1.0;
-          window.speechSynthesis.speak(u);
-        }
+        window.speechSynthesis.cancel(); 
+        let u = new SpeechSynthesisUtterance(speakText);
+        u.lang = 'zh-TW'; 
+        u.rate = 0.9; 
+        u.volume = 1.0;
+        window.speechSynthesis.speak(u);
       }
 
       call母艦API({ action: "updateTimer", timerState: "強制提醒發動中", remainingTime: "0分0秒" });
       
-      // 爆閃模式維持 45 秒後自動解除恢復正常
       setTimeout(function() {
         box.classList.remove('bombing-mode');
         body.classList.remove('bombing-body');
         call母艦API({ action: "updateTimer", timerState: "閒置", remainingTime: "" });
         isFixedAlertTriggered = false;
-      }, 45000);
+      }, 30000);
     }
 
-    // 核心修復：定時提醒比對邏輯與防卡死
     function checkFixedTimeAlert() {
       if(!globalConfig['定時提醒時間']) return;
-      const cleanTargetTime = formatTimeStr(globalConfig['定時提醒時間']); // 轉換排除宇宙時間
+      const cleanTargetTime = formatTimeStr(globalConfig['定時提醒時間']); 
       
       const now = new Date();
       const currentHHMM = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
       
-      // 精準比對目前的分鐘，並且防止一分鐘之內重複呼叫
       if (currentHHMM === cleanTargetTime && !isFixedAlertTriggered) {
         isFixedAlertTriggered = true;
         
-        call母艦API({ action: "updateTimer", timerState: "定時提醒發動", remainingTime: "準備中" });
+        call母艦API({ action: "updateTimer", timerState: "定時提醒發動", remainingTime: "通知中" });
         document.getElementById('currentTimerItemName').innerText = "⚠️ 家長排定強制提醒 ⚠️";
         
-        // 執行爆閃、語音、震動效果
-        triggerVisualAndAudioBombing(globalConfig['定時提醒語'] || "家長提醒時間到了！");
+        // 修正：定時提醒時間：播報家長管理設定的提醒語說四次
+        let userFixedText = globalConfig['定時提醒語'] ? String(globalConfig['定時提醒語']).trim() : "時間到囉！";
+        let loopText = `${userFixedText}，${userFixedText}，${userFixedText}，${userFixedText}`;
+        
+        triggerVisualAndAudioBombing("🔔 家長定時提醒時間到", loopText);
       }
     }
 
