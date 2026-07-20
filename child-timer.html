@@ -635,7 +635,14 @@
       globalStatus['計時剩餘時間'] = `${minutes}分0秒`;
       renderPageElements(); 
       
-      call母艦API({ action: "updateTimer", timerState: `運作［${name}］`, remainingTime: `${minutes}分0秒` });
+      call母艦API({ 
+  action: "updateTimer", 
+  timerState: `運作［${name}］`, 
+  remainingTime: `${minutes}分0秒`,
+  minutes: minutes,
+  timerName: name,
+  alertText: globalConfig['計時結束播報語'] || "時間到了！"
+});
 
       // 3. 以絕對時間差進行倒數比對
       countdownInterval = setInterval(function() {
