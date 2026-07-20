@@ -3,14 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>今日時間管理工具</title>
-  
-  <!-- 📱 PWA 桌面應用程式標籤 (支援 iOS / Android 鎖屏系統推播) -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="時間數位管家">
-  <meta name="theme-color" content="#F9F6F0">
-
+  <title>Timer時間管理工具</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -42,30 +35,21 @@
   <!-- 🔊 質感啟動與防呆連線遮罩層 -->
   <div id="audioUnlockOverlay" class="fixed inset-0 bg-sibylBg z-[9999] flex flex-col items-center justify-center p-4 box-border transition-all duration-500">
     <div class="w-full max-w-[380px] bg-white rounded-[32px] p-6 text-center shadow-[0_25px_60px_rgba(74,62,61,0.07)] border-2 border-[#EFEAE2] flex flex-col items-center box-border">
-      
       <div class="w-20 h-20 bg-sibylMain/30 rounded-full flex items-center justify-center mb-5 animate-pulse">
         <div class="w-14 h-14 bg-sibylMain rounded-full flex items-center justify-center shadow-inner">
           <span class="text-2xl">✨</span>
         </div>
       </div>
-      
       <h2 class="m-0 mb-2 text-xl font-bold tracking-tight text-sibylText">數位管家已就緒</h2>
-      <p class="text-sm text-sibylMuted mb-6 px-2 leading-relaxed" id="txtOverlayTips">
-        正在確認雲端資料庫連線權限...
-      </p>
+      <p class="text-sm text-sibylMuted mb-6 px-2 leading-relaxed" id="txtOverlayTips">正在確認雲端資料庫連線權限...</p>
 
       <div id="idSetupBox" class="w-full mb-5 hidden">
         <input type="text" class="w-full p-4 rounded-xl border-2 border-[#EFEAE2] bg-[#FDFBF7] text-sm text-center outline-none text-sibylText" id="inputSpreadsheetUrl" placeholder="請貼上您的 Google 試算表完整網址">
         <button class="w-full mt-3 p-3.5 bg-sibylText text-white text-sm font-bold rounded-xl cursor-pointer shadow-md active:scale-[0.98] transition-all" onclick="saveManualUrl()">綁定此資料庫 🔗</button>
       </div>
       
-      <button class="w-full py-4 bg-[#EFEAE2] text-sibylMuted border-none rounded-2xl text-base font-bold tracking-wider transition-all duration-300" id="btnUnlockStart" onclick="unlockAudioAndLoad()" disabled>
-        正在驗證安全通道...
-      </button>
-      
-      <div class="text-[10px] text-sibylLight/70 tracking-widest uppercase mt-6">
-        Sibyl Digital Security Connected
-      </div>
+      <button class="w-full py-4 bg-[#EFEAE2] text-sibylMuted border-none rounded-2xl text-base font-bold tracking-wider transition-all duration-300" id="btnUnlockStart" onclick="unlockAudioAndLoad()" disabled>正在驗證安全通道...</button>
+      <div class="text-[10px] text-sibylLight/70 tracking-widest uppercase mt-6">Sibyl Digital Security Connected</div>
     </div>
   </div>
 
@@ -81,12 +65,6 @@
     <h1 class="text-2xl font-bold text-center m-0 mb-1 tracking-tight" id="txtGreeting">連線中...</h1>
     <div class="text-xs text-sibylMuted text-center mb-5 tracking-wide">今天也要保持好習慣唷 ✨</div>
     
-    <!-- 📲 PWA 安裝加固提示橫幅 (引導加入主畫面，鎖屏通知更強大) -->
-    <div class="bg-amber-50/60 p-3 rounded-2xl border border-amber-200/80 mb-5 text-xs text-amber-900 flex items-center gap-2">
-      <span class="text-base">💡</span>
-      <span class="flex-1 font-medium leading-tight">提示：點擊手機選單「新增至主畫面」，鎖屏與切換 App 時皆能準時響起系統鬧鐘推播！</span>
-    </div>
-
     <hr class="border-0 border-t-2 border-dashed border-[#EFEAE2] my-5">
     
     <div class="text-base font-bold mb-3 flex items-center gap-2">📋 今日必須完成</div>
@@ -94,14 +72,25 @@
       <div class="text-center text-sibylMuted text-sm py-4">資料庫通訊中...</div>
     </div>
     
-    <div class="text-base font-bold mb-3 flex items-center gap-2" id="timerTitle">⏰ 計時提醒管理</div>
+    <div class="text-base font-bold mb-3 flex items-center justify-between" id="timerTitle">
+      <span>⏰ 計時提醒管理</span>
+      <!-- 🎮 畫中畫懸浮視圖按鈕 (置頂於遊戲上方) -->
+      <button onclick="togglePipMode()" class="text-xs text-sibylMuted bg-[#FAF8F5] px-2.5 py-1 rounded-lg border border-[#EFEAE2] font-bold hover:bg-amber-50 active:scale-95 transition-all">🖼️ 遊戲中置頂懸浮</button>
+    </div>
     
-    <!-- 🟡 超美黃框計時主體 (與圖一完全一致) -->
-    <div class="bg-[#FDFBF7] p-5 md:p-6 rounded-3xl border-[3px] border-[#FFC72C] transition-all duration-300 shadow-sm text-center mb-6" id="timerBox">
+    <!-- 🟡 超美黃框計時主體 -->
+    <div class="bg-[#FDFBF7] p-5 md:p-6 rounded-3xl border-[3px] border-[#FFC72C] transition-all duration-300 shadow-sm text-center mb-6 relative" id="timerBox">
       <div id="timerBadge" class="hidden inline-block mx-auto mb-2 px-3 py-0.5 bg-amber-500 text-white text-[10px] font-extrabold tracking-widest uppercase rounded-full animate-pulse">⏳ 任務進行中</div>
       <div class="text-sm font-bold text-sibylMuted transition-all" id="currentTimerItemName">請選擇下方項目開始計時</div>
       <div class="text-5xl md:text-6xl font-extrabold tracking-wider my-3 font-mono text-sibylText drop-shadow-sm" id="txtCountdown">00:00</div>
       
+      <!-- ☕ 遊戲結束後引導孩子點擊「我開始休息」按鈕 -->
+      <div id="restTriggerBox" class="hidden my-3">
+        <button onclick="startRestCountdown()" class="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-base rounded-2xl shadow-lg animate-bounce transition-all active:scale-95">
+          🍵 我知道了，我開始休息！
+        </button>
+      </div>
+
       <div class="grid grid-cols-2 gap-2.5 mt-3" id="timerBtnGridContainer"></div>
     </div>
     
@@ -143,9 +132,7 @@
     <div class="text-xs text-sibylMuted mb-4">同步資料中，變更後孩子端同步更新</div>
     
     <div class="bg-[#FDFBF7] p-4 rounded-2xl border-2 border-[#EFEAE2] mb-5 text-sm shadow-sm relative">
-      <button onclick="forceRefreshAllData()" class="absolute top-3 right-3 bg-white border border-[#EFEAE2] text-sibylText px-2 py-1 rounded-md text-[11px] font-bold shadow-sm hover:bg-[#FAF8F5] active:scale-95 transition-all flex items-center gap-1">
-        🔄 強制重整
-      </button>
+      <button onclick="forceRefreshAllData()" class="absolute top-3 right-3 bg-white border border-[#EFEAE2] text-sibylText px-2 py-1 rounded-md text-[11px] font-bold shadow-sm hover:bg-[#FAF8F5] active:scale-95 transition-all flex items-center gap-1">🔄 強制重整</button>
 
       <div class="font-bold mb-2 text-sibylSuccessText flex items-center gap-1">📈 今日即時狀態：</div>
       <div class="space-y-1.5 text-xs">
@@ -193,19 +180,24 @@
         </div>
       </div>
 
+      <!-- ⏱️ 計時與休息長度設定 -->
       <div class="p-4 bg-blue-50/40 rounded-2xl border border-blue-100/70 space-y-2">
-        <div class="font-bold text-blue-800/80 text-[13px]">⏱️ 自訂項目計時器配額</div>
+        <div class="font-bold text-blue-800/80 text-[13px]">⏱️ 自訂項目計時與休息配額</div>
         <div>
           <label class="block font-bold mb-1 text-sibylText">計時項目名稱 (多個請以英文逗號隔開)</label>
           <input type="text" class="w-full p-3 rounded-xl border-2 border-blue-100 bg-white" id="cfgTimerName">
         </div>
         <div>
-          <label class="block font-bold mb-1 text-sibylText">計時長度_分鐘 (對應多個項目請以逗號隔開)</label>
+          <label class="block font-bold mb-1 text-sibylText">遊戲/使用長度_分鐘 (多個請以逗號隔開)</label>
           <input type="text" class="w-full p-3 rounded-xl border-2 border-blue-100 bg-white" id="cfgTimerMin">
         </div>
         <div>
+          <label class="block font-bold mb-1 text-emerald-800 font-bold">🍵 遊戲後強制休息長度_分鐘 (預設10分鐘)</label>
+          <input type="text" class="w-full p-3 rounded-xl border-2 border-emerald-200 bg-emerald-50/50 font-bold" id="cfgRestMin" placeholder="例如 10">
+        </div>
+        <div>
           <label class="block font-bold mb-1 text-sibylText">計時結束播報語</label>
-          <input type="text" class="w-full p-3 rounded-xl border-2 border-blue-100 bg-white" id="cfgAlertText" placeholder="不填則預設連說四次：時間到了！">
+          <input type="text" class="w-full p-3 rounded-xl border-2 border-blue-100 bg-white" id="cfgAlertText" placeholder="預設：時間到了！請讓眼睛休息！">
         </div>
       </div>
 
@@ -228,6 +220,10 @@
     </div>
   </div>
 
+  <!-- 🖼️ 畫中畫 Canvas 隱藏元件 (用於產生懸浮小視窗) -->
+  <canvas id="pipCanvas" width="300" height="150" class="hidden"></canvas>
+  <video id="pipVideo" autoplay muted class="hidden"></video>
+
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz9zyKZdIPf4wwiG1QyFDC3FXwVPe12lYHRw5LYRqzaLs00h-fcAo5HiAjfqQgOSdfO/exec";
 
@@ -242,7 +238,8 @@
     let pendingBombingPayload = null; 
     let currentTimerNameLocal = ""; 
     let targetEndTimeMs = 0;
-    let swRegistration = null; // Service Worker 註冊對象
+    let pipVideo = document.getElementById('pipVideo');
+    let pipCanvas = document.getElementById('pipCanvas');
 
     const colorPalette = [
       { bg: 'bg-[#F4EAE6]', border: 'border-[#E5D4CD]', text: 'text-[#AA6C59]' }, 
@@ -251,34 +248,6 @@
       { bg: 'bg-[#F8F1E5]', border: 'border-[#ECDCC4]', text: 'text-[#A08153]' }, 
       { bg: 'bg-[#F0ECF4]', border: 'border-[#E2DAEB]', text: 'text-[#7C5A99]' }
     ];
-
-    // 🚀 動態註冊 Service Worker (PWA 穿透鎖屏關鍵引擎)
-    function registerPwaServiceWorker() {
-      if ('serviceWorker' in navigator) {
-        const swCode = `
-          self.addEventListener('install', e => self.skipWaiting());
-          self.addEventListener('activate', e => self.clients.claim());
-          self.addEventListener('message', e => {
-            if (e.data && e.data.type === 'TRIGGER_PUSH') {
-              self.registration.showNotification(e.data.title, {
-                body: e.data.body,
-                icon: 'https://cdn-icons-png.flaticon.com/512/3652/3652191.png',
-                vibrate: [500, 200, 500, 200, 500, 200, 500],
-                tag: 'sibyl-timer-alarm',
-                renotify: true,
-                requireInteraction: true
-              });
-            }
-          });
-        `;
-        const blob = new Blob([swCode], { type: 'application/javascript' });
-        const blobUrl = URL.createObjectURL(blob);
-        navigator.serviceWorker.register(blobUrl).then(reg => {
-          swRegistration = reg;
-          console.log('PWA Service Worker 已就緒！鎖屏推播引擎通電。');
-        }).catch(err => console.log('SW Registration error:', err));
-      }
-    }
 
     function getTodayKey() {
       const d = new Date();
@@ -393,17 +362,9 @@
 
     function unlockAudioAndLoad() {
       if (!SPREADSHEET_ID) { showSibylToast("尚未取得雲端資料庫 ID"); return; }
-      
-      // 請求系統層級推播權限
-      if ('Notification' in window) { 
-        Notification.requestPermission().then(permission => {
-          if (permission === 'granted') console.log('系統推播權限授權成功！');
-        }); 
-      }
-      
+      if ('Notification' in window) { Notification.requestPermission(); }
       if ('speechSynthesis' in window) { window.speechSynthesis.speak(new SpeechSynthesisUtterance('')); }
-      registerPwaServiceWorker();
-
+      
       const overlay = document.getElementById('audioUnlockOverlay');
       overlay.classList.add('opacity-0', 'pointer-events-none');
       setTimeout(() => { overlay.style.display = 'none'; }, 500);
@@ -563,6 +524,7 @@
       }
 
       if (document.getElementById('parentView').style.display === 'block') {
+        document.getElementById('cfgRestMin').value = globalConfig['休息長度_分鐘'] || "10";
         document.getElementById('cfgFixedTime').value = formatTimeStr(globalConfig['定時提醒時間']);
       }
       
@@ -664,8 +626,10 @@
       });
     }
 
+    // 🚀【遊戲計時開始】
     function startTimerSession(name, minutes) {
       if (countdownInterval) clearInterval(countdownInterval);
+      document.getElementById('restTriggerBox').classList.add('hidden'); // 隱藏休息按鈕
       currentTimerNameLocal = name; 
       document.getElementById('currentTimerItemName').innerText = `正在計時項目：［${name}］`;
       
@@ -687,18 +651,23 @@
           currentTimerNameLocal = "";
           
           document.getElementById('txtCountdown').innerText = "00:00";
-          document.getElementById('currentTimerItemName').innerText = "計時完成！";
+          document.getElementById('currentTimerItemName').innerText = "⏰ 遊戲時間到了！請開始休息";
+          
+          // 🟢 顯示綠色大按鈕，要求孩子點擊「我開始休息」
+          document.getElementById('restTriggerBox').classList.remove('hidden');
           renderPageElements();
           
           let rawAlert = globalConfig['計時結束播報語'] ? globalConfig['計時結束播報語'].trim() : "";
-          let speakUnit = rawAlert || "時間到了！";
-          triggerDualLayerBombing("⏰ 計時任務終了", `${speakUnit}。${speakUnit}。${speakUnit}。${speakUnit}。`);
+          let speakUnit = rawAlert || "時間到了！請讓眼睛休息一下！";
+          triggerDualLayerBombing("⏰ 遊戲時間終了", `${speakUnit}。${speakUnit}。${speakUnit}。${speakUnit}。`);
           return;
         }
 
         let m = Math.floor(totalSeconds / 60);
         let s = totalSeconds % 60;
-        document.getElementById('txtCountdown').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        let timeDisplay = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        document.getElementById('txtCountdown').innerText = timeDisplay;
+        updatePipCanvas(timeDisplay, name); // 同步繪製到置頂畫中畫視窗
         
         globalStatus['計時狀態'] = `運作［${name}］`;
         globalStatus['計時剩餘時間'] = `${m}分${s}秒`;
@@ -709,20 +678,94 @@
       }, 1000);
     }
 
-    // 🚀【雙重穿透轟炸】PWA 系統推播 ＋ 前台爆閃震動廣播
+    // 🍵【強制休息計時發動】（孩子點擊「我知道了，我開始休息」時觸發）
+    function startRestCountdown() {
+      if (countdownInterval) clearInterval(countdownInterval);
+      document.getElementById('restTriggerBox').classList.add('hidden');
+      
+      let restMins = parseInt(globalConfig['休息長度_分鐘'] || "10");
+      document.getElementById('currentTimerItemName').innerText = `🍵 正在強制休息中 (${restMins}分鐘)`;
+      
+      targetEndTimeMs = Date.now() + (restMins * 60 * 1000);
+      
+      globalStatus['計時狀態'] = `眼睛休息中`;
+      globalStatus['計時剩餘時間'] = `${restMins}分0秒`;
+      renderPageElements();
+      call母艦API({ action: "updateTimer", timerState: "眼睛休息中", remainingTime: `${restMins}分0秒` });
+
+      countdownInterval = setInterval(function() {
+        let remainingMs = targetEndTimeMs - Date.now();
+        let totalSeconds = Math.ceil(remainingMs / 1000);
+
+        if (totalSeconds <= 0) {
+          clearInterval(countdownInterval);
+          countdownInterval = null;
+          
+          document.getElementById('txtCountdown').innerText = "00:00";
+          document.getElementById('currentTimerItemName').innerText = "✨ 休息完成！可以繼續活動囉";
+          renderPageElements();
+          
+          triggerDualLayerBombing("✨ 休息時間結束", "休息時間到了！眼睛已經放鬆囉！。休息時間到了！眼睛已經放鬆囉！");
+          return;
+        }
+
+        let m = Math.floor(totalSeconds / 60);
+        let s = totalSeconds % 60;
+        let timeDisplay = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        document.getElementById('txtCountdown').innerText = timeDisplay;
+        updatePipCanvas(timeDisplay, "休息中");
+
+        globalStatus['計時狀態'] = `眼睛休息中`;
+        globalStatus['計時剩餘時間'] = `${m}分${s}秒`;
+
+        if (totalSeconds % 15 === 0) {
+          call母艦API({ action: "updateTimer", timerState: "眼睛休息中", remainingTime: `${m}分${s}秒` });
+        }
+      }, 1000);
+    }
+
+    // 🎮【畫中畫 (Picture-in-Picture) 遊戲置頂視窗機制】
+    function updatePipCanvas(timeText, labelText) {
+      let ctx = pipCanvas.getContext('2d');
+      ctx.fillStyle = '#F9F6F0';
+      ctx.fillRect(0, 0, 300, 150);
+      
+      ctx.fillStyle = '#8A7A78';
+      ctx.font = 'bold 16px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(labelText || '計時中', 150, 40);
+
+      ctx.fillStyle = '#4A3E3D';
+      ctx.font = 'extrabold 52px monospace';
+      ctx.fillText(timeText, 150, 100);
+
+      if (pipVideo.srcObject) {
+        // 動態刷新 Stream 內容
+        pipVideo.srcObject.getVideoTracks()[0].requestFrame();
+      }
+    }
+
+    async function togglePipMode() {
+      try {
+        if (document.pictureInPictureElement) {
+          await document.exitPictureInPicture();
+        } else {
+          updatePipCanvas("00:00", "準備就緒");
+          const stream = pipCanvas.captureStream(10);
+          pipVideo.srcObject = stream;
+          await pipVideo.play();
+          await pipVideo.requestPictureInPicture();
+          showSibylToast("懸浮視窗已開啟！可直接釘在遊戲角落看倒數囉 ✨", "success");
+        }
+      } catch (err) {
+        showSibylToast("您的瀏覽器版本不支援懸浮視窗，請按 Alt+Tab 切換查看。");
+      }
+    }
+
     function triggerDualLayerBombing(title, speakText) {
-      // 1. 穿透鎖屏與切換 App：發送 PWA Service Worker 系統原生推播
-      if (swRegistration && swRegistration.active) {
-        swRegistration.active.postMessage({
-          type: 'TRIGGER_PUSH',
-          title: title,
-          body: speakText
-        });
-      } else if ('Notification' in window && Notification.permission === 'granted') {
+      if ('Notification' in window && Notification.permission === 'granted') {
         new Notification(title, { body: speakText, requireInteraction: true });
       }
-
-      // 2. 前台狀態判斷
       if (document.visibilityState === "visible") {
         executeFrontEndBombing(title, speakText);
       } else {
@@ -782,6 +825,7 @@
         document.getElementById('cfgTasks').value = globalConfig['每日任務清單'] || "";
         document.getElementById('cfgTimerName').value = globalConfig['計時項目名稱'] || "";
         document.getElementById('cfgTimerMin').value = globalConfig['計時長度_分鐘'] || "";
+        document.getElementById('cfgRestMin').value = globalConfig['休息長度_分鐘'] || "10";
         document.getElementById('cfgAlertText').value = globalConfig['計時結束播報語'] || "";
         document.getElementById('cfgFixedTime').value = formatTimeStr(globalConfig['定時提醒時間']);
         document.getElementById('cfgFixedText').value = globalConfig['定時提醒語'] || "";
@@ -809,6 +853,7 @@
         tasks: document.getElementById('cfgTasks').value,
         timerName: document.getElementById('cfgTimerName').value,
         timerMin: document.getElementById('cfgTimerMin').value,
+        restMin: document.getElementById('cfgRestMin').value,
         alertText: document.getElementById('cfgAlertText').value,
         fixedTime: document.getElementById('cfgFixedTime').value,
         fixedText: document.getElementById('cfgFixedText').value
