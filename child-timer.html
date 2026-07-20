@@ -32,11 +32,6 @@
 </head>
 <body id="mainBody" class="bg-sibylBg m-0 p-4 md:p-6 min-h-full flex flex-col items-center justify-start box-border text-sibylText font-sans leading-relaxed">
 
-  <!-- 🔇 隱藏式無音 MP3 背景保活播放器 (防止手機/電腦鎖屏與休眠凍結) -->
-  <audio id="silentAudioPlayer" loop style="display: none;">
-    <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=" type="audio/wav">
-  </audio>
-
   <!-- 🔊 質感啟動與防呆連線遮罩層 -->
   <div id="audioUnlockOverlay" class="fixed inset-0 bg-sibylBg z-[9999] flex flex-col items-center justify-center p-4 box-border transition-all duration-500">
     <div class="w-full max-w-[380px] bg-white rounded-[32px] p-6 text-center shadow-[0_25px_60px_rgba(74,62,61,0.07)] border-2 border-[#EFEAE2] flex flex-col items-center box-border">
@@ -87,10 +82,20 @@
     </div>
     
     <div class="text-base font-bold mb-3 flex items-center gap-2" id="timerTitle">⏰ 計時提醒管理</div>
-    <div class="bg-[#FDFBF7] p-5 md:p-6 rounded-3xl border-[3px] border-[#FFC72C] transition-all duration-300 shadow-sm" id="timerBox">
+    
+    <!-- 🟡 超美黃框計時主體 -->
+    <div class="bg-[#FDFBF7] p-5 md:p-6 rounded-3xl border-[3px] border-[#FFC72C] transition-all duration-300 shadow-sm text-center mb-6" id="timerBox">
       <div id="timerBadge" class="hidden inline-block mx-auto mb-2 px-3 py-0.5 bg-amber-500 text-white text-[10px] font-extrabold tracking-widest uppercase rounded-full animate-pulse">⏳ 任務進行中</div>
       <div class="text-sm font-bold text-sibylMuted transition-all" id="currentTimerItemName">請選擇下方項目開始計時</div>
       <div class="text-5xl md:text-6xl font-extrabold tracking-wider my-3 font-mono text-sibylText drop-shadow-sm" id="txtCountdown">00:00</div>
+      
+      <!-- 📱 零授權！一鍵同步至手機原生鎖屏鬧鐘按鈕 (當計時進行中時自動浮現) -->
+      <div id="icsAlarmBox" class="hidden mb-3">
+        <button onclick="downloadNativeIcsAlarm()" class="w-full py-2.5 px-4 bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 font-extrabold text-xs rounded-xl shadow-sm transition-all active:scale-95 flex items-center justify-center gap-1.5">
+          <span>🔔 點此將鬧鐘加入手機鎖屏/行事曆</span>
+        </button>
+      </div>
+
       <div class="grid grid-cols-2 gap-2.5 mt-3" id="timerBtnGridContainer"></div>
     </div>
     
@@ -230,7 +235,7 @@
     let isSyncing = false; 
     let pendingBombingPayload = null; 
     let currentTimerNameLocal = ""; 
-    let targetEndTimeMs = 0; // 絕對結束時間戳記
+    let targetEndTimeMs = 0;
 
     const colorPalette = [
       { bg: 'bg-[#F4EAE6]', border: 'border-[#E5D4CD]', text: 'text-[#AA6C59]' }, 
@@ -384,7 +389,6 @@
       });
     }
 
-    // 喚醒補償機制 (從背景回到網頁時觸發)
     document.addEventListener("visibilitychange", function() {
       if (document.visibilityState === "visible" && pendingBombingPayload) {
         let payload = pendingBombingPayload;
@@ -441,7 +445,7 @@
     }
 
     function renderPageElements() {
-      document.getElementById('txtGreeting').innerText = `${globalConfig['孩子暱稱'] || '寶貝'}`;
+      document.getElementById('txtGreeting').innerText = `哈囉，${globalConfig['孩子暱稱'] || '寶貝'}`;
       
       const container = document.getElementById('taskListContainer');
       container.innerHTML = "";
@@ -467,12 +471,16 @@
 
       const timerBox = document.getElementById('timerBox');
       const badge = document.getElementById('timerBadge');
+      const icsBox = document.getElementById('icsAlarmBox');
+      
       if (countdownInterval) {
-        timerBox.className = "bg-amber-50/80 p-5 md:p-6 rounded-3xl border-2 border-amber-400 text-center mb-6 shadow-md ring-4 ring-amber-400/20 scale-[1.01] transition-all duration-300";
+        timerBox.className = "bg-amber-50/80 p-5 md:p-6 rounded-3xl border-[3px] border-[#FFC72C] text-center mb-6 shadow-md ring-4 ring-amber-400/20 scale-[1.01] transition-all duration-300";
         badge.classList.remove('hidden');
+        icsBox.classList.remove('hidden');
       } else {
-        timerBox.className = "bg-[#FDFBF7] p-5 md:p-6 rounded-3xl border-2 border-[#FFC72C] text-center mb-6 transition-all duration-300 shadow-none ring-0 scale-100";
+        timerBox.className = "bg-[#FDFBF7] p-5 md:p-6 rounded-3xl border-[3px] border-[#FFC72C] text-center mb-6 transition-all duration-300 shadow-none ring-0 scale-100";
         badge.classList.add('hidden');
+        icsBox.classList.add('hidden');
       }
 
       const btnContainer = document.getElementById('timerBtnGridContainer');
@@ -511,7 +519,7 @@
       const activeEmoji = loadStatusFromLocalLock('moodEmoji', globalStatus['今日心情 Emoji'] || "");
       if(activeEmoji) {
         const activeBtn = document.getElementById(`emoji-${activeEmoji}`);
-        if(activeBtn) activeBtn.className += ' bg-sibylMain border-sibylLight font-bold ring-2 ring-sibylLight/30 scale-105';
+        if(activeBtn) activeBtn.className += ' bg-[#E8D8CE] border-sibylLight font-bold ring-2 ring-sibylLight/30 scale-105';
       }
 
       if (document.getElementById('parentView').style.display === 'block') {
@@ -555,8 +563,8 @@
 
     function selectMood(element, emoji) {
       isSyncing = true;
-      document.querySelectorAll('.mood-btn').forEach(b => b.className = b.className.replace(' bg-sibylMain border-sibylLight font-bold ring-2 ring-sibylLight/30 scale-105', ''));
-      element.className += ' bg-sibylMain border-sibylLight font-bold ring-2 ring-sibylLight/30 scale-105';
+      document.querySelectorAll('.mood-btn').forEach(b => b.className = b.className.replace(' bg-[#E8D8CE] border-sibylLight font-bold ring-2 ring-sibylLight/30 scale-105', ''));
+      element.className += ' bg-[#E8D8CE] border-sibylLight font-bold ring-2 ring-sibylLight/30 scale-105';
       selectedEmoji = emoji;
       
       saveStatusToLocalLock('moodEmoji', emoji);
@@ -616,45 +624,28 @@
       });
     }
 
-    // 🚀【核心保活重寫】：採用絕對時間戳記 ＋ 無聲音訊保活播放器
+    // 🚀【核心：絕對時間戳記計時器】
     function startTimerSession(name, minutes) {
       if (countdownInterval) clearInterval(countdownInterval);
       currentTimerNameLocal = name; 
       document.getElementById('currentTimerItemName').innerText = `正在計時項目：［${name}］`;
       
-      // 1. 啟動無音音訊，強制告訴作業系統：這個網頁正在播放音樂，禁止休眠凍結！
-      const audioPlayer = document.getElementById('silentAudioPlayer');
-      if (audioPlayer) {
-        audioPlayer.play().catch(e => console.log('Audio auto-play managed:', e));
-      }
-
-      // 2. 算絕對目標時間（當前時間 + X 分鐘）
       targetEndTimeMs = Date.now() + (minutes * 60 * 1000);
       
       globalStatus['計時狀態'] = `運作［${name}］`;
       globalStatus['計時剩餘時間'] = `${minutes}分0秒`;
       renderPageElements(); 
       
-      call母艦API({ 
-  action: "updateTimer", 
-  timerState: `運作［${name}］`, 
-  remainingTime: `${minutes}分0秒`,
-  minutes: minutes,
-  timerName: name,
-  alertText: globalConfig['計時結束播報語'] || "時間到了！"
-});
+      call母艦API({ action: "updateTimer", timerState: `運作［${name}］`, remainingTime: `${minutes}分0秒` });
 
-      // 3. 以絕對時間差進行倒數比對
       countdownInterval = setInterval(function() {
         let remainingMs = targetEndTimeMs - Date.now();
         let totalSeconds = Math.ceil(remainingMs / 1000);
 
         if (totalSeconds <= 0) {
-          // 時間到！
           clearInterval(countdownInterval);
           countdownInterval = null;
           currentTimerNameLocal = "";
-          if (audioPlayer) audioPlayer.pause(); // 停止無音音樂
           
           document.getElementById('txtCountdown').innerText = "00:00";
           document.getElementById('currentTimerItemName').innerText = "計時完成！";
@@ -677,6 +668,46 @@
           call母艦API({ action: "updateTimer", timerState: `運作［${name}］`, remainingTime: `${m}分${s}秒` });
         }
       }, 1000);
+    }
+
+    // 📲 零授權！觸發下載 .ics 行事曆鬧鐘，直接穿透 iOS/Android 手機鎖屏
+    function downloadNativeIcsAlarm() {
+      if (!targetEndTimeMs) return;
+      const startDate = new Date(targetEndTimeMs);
+      const endDate = new Date(targetEndTimeMs + (5 * 60 * 1000)); // 5 分鐘事件
+
+      function formatDateToICS(d) {
+        return d.toISOString().replace(/-|:|\.\d+/g, "");
+      }
+
+      const icsContent = 
+`BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Sibyl Digital Manager//Child Timer//TW
+BEGIN:VEVENT
+SUMMARY:⏰【數位管家】${currentTimerNameLocal || '計時項目'} 時間到囉！
+DESCRIPTION:${globalConfig['計時結束播報語'] || '電腦使用時間到了，請讓眼睛休息一下唷！✨'}
+DTSTART:${formatDateToICS(startDate)}
+DTEND:${formatDateToICS(endDate)}
+BEGIN:VALARM
+TRIGGER:-PT0M
+ACTION:DISPLAY
+DESCRIPTION:Time Up
+END:VALARM
+END:VEVENT
+END:VCALENDAR`;
+
+      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `timer_alarm.ics`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      showSibylToast("手機系統鬧鐘下載中，請點擊「加入/新增」即可鎖定鎖屏鬧鐘！⏰", "success");
     }
 
     function triggerDualLayerBombing(title, speakText) {
