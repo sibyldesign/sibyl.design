@@ -3,7 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Timer時間管理工具</title>
+  <title>今日時間管理工具</title>
+  
+  <!-- 📱 PWA 桌面應用程式標籤 (支援 iOS / Android 鎖屏系統推播) -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="時間數位管家">
+  <meta name="theme-color" content="#F9F6F0">
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -74,6 +81,12 @@
     <h1 class="text-2xl font-bold text-center m-0 mb-1 tracking-tight" id="txtGreeting">連線中...</h1>
     <div class="text-xs text-sibylMuted text-center mb-5 tracking-wide">今天也要保持好習慣唷 ✨</div>
     
+    <!-- 📲 PWA 安裝加固提示橫幅 (引導加入主畫面，鎖屏通知更強大) -->
+    <div class="bg-amber-50/60 p-3 rounded-2xl border border-amber-200/80 mb-5 text-xs text-amber-900 flex items-center gap-2">
+      <span class="text-base">💡</span>
+      <span class="flex-1 font-medium leading-tight">提示：點擊手機選單「新增至主畫面」，鎖屏與切換 App 時皆能準時響起系統鬧鐘推播！</span>
+    </div>
+
     <hr class="border-0 border-t-2 border-dashed border-[#EFEAE2] my-5">
     
     <div class="text-base font-bold mb-3 flex items-center gap-2">📋 今日必須完成</div>
@@ -83,19 +96,12 @@
     
     <div class="text-base font-bold mb-3 flex items-center gap-2" id="timerTitle">⏰ 計時提醒管理</div>
     
-    <!-- 🟡 超美黃框計時主體 -->
+    <!-- 🟡 超美黃框計時主體 (與圖一完全一致) -->
     <div class="bg-[#FDFBF7] p-5 md:p-6 rounded-3xl border-[3px] border-[#FFC72C] transition-all duration-300 shadow-sm text-center mb-6" id="timerBox">
       <div id="timerBadge" class="hidden inline-block mx-auto mb-2 px-3 py-0.5 bg-amber-500 text-white text-[10px] font-extrabold tracking-widest uppercase rounded-full animate-pulse">⏳ 任務進行中</div>
       <div class="text-sm font-bold text-sibylMuted transition-all" id="currentTimerItemName">請選擇下方項目開始計時</div>
       <div class="text-5xl md:text-6xl font-extrabold tracking-wider my-3 font-mono text-sibylText drop-shadow-sm" id="txtCountdown">00:00</div>
       
-      <!-- 📱 零授權！一鍵同步至手機原生鎖屏鬧鐘按鈕 (當計時進行中時自動浮現) -->
-      <div id="icsAlarmBox" class="hidden mb-3">
-        <button onclick="downloadNativeIcsAlarm()" class="w-full py-2.5 px-4 bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 font-extrabold text-xs rounded-xl shadow-sm transition-all active:scale-95 flex items-center justify-center gap-1.5">
-          <span>🔔 點此將鬧鐘加入手機鎖屏/行事曆</span>
-        </button>
-      </div>
-
       <div class="grid grid-cols-2 gap-2.5 mt-3" id="timerBtnGridContainer"></div>
     </div>
     
@@ -236,6 +242,7 @@
     let pendingBombingPayload = null; 
     let currentTimerNameLocal = ""; 
     let targetEndTimeMs = 0;
+    let swRegistration = null; // Service Worker 註冊對象
 
     const colorPalette = [
       { bg: 'bg-[#F4EAE6]', border: 'border-[#E5D4CD]', text: 'text-[#AA6C59]' }, 
@@ -244,6 +251,34 @@
       { bg: 'bg-[#F8F1E5]', border: 'border-[#ECDCC4]', text: 'text-[#A08153]' }, 
       { bg: 'bg-[#F0ECF4]', border: 'border-[#E2DAEB]', text: 'text-[#7C5A99]' }
     ];
+
+    // 🚀 動態註冊 Service Worker (PWA 穿透鎖屏關鍵引擎)
+    function registerPwaServiceWorker() {
+      if ('serviceWorker' in navigator) {
+        const swCode = `
+          self.addEventListener('install', e => self.skipWaiting());
+          self.addEventListener('activate', e => self.clients.claim());
+          self.addEventListener('message', e => {
+            if (e.data && e.data.type === 'TRIGGER_PUSH') {
+              self.registration.showNotification(e.data.title, {
+                body: e.data.body,
+                icon: 'https://cdn-icons-png.flaticon.com/512/3652/3652191.png',
+                vibrate: [500, 200, 500, 200, 500, 200, 500],
+                tag: 'sibyl-timer-alarm',
+                renotify: true,
+                requireInteraction: true
+              });
+            }
+          });
+        `;
+        const blob = new Blob([swCode], { type: 'application/javascript' });
+        const blobUrl = URL.createObjectURL(blob);
+        navigator.serviceWorker.register(blobUrl).then(reg => {
+          swRegistration = reg;
+          console.log('PWA Service Worker 已就緒！鎖屏推播引擎通電。');
+        }).catch(err => console.log('SW Registration error:', err));
+      }
+    }
 
     function getTodayKey() {
       const d = new Date();
@@ -358,9 +393,17 @@
 
     function unlockAudioAndLoad() {
       if (!SPREADSHEET_ID) { showSibylToast("尚未取得雲端資料庫 ID"); return; }
-      if ('Notification' in window) { Notification.requestPermission(); }
-      if ('speechSynthesis' in window) { window.speechSynthesis.speak(new SpeechSynthesisUtterance('')); }
       
+      // 請求系統層級推播權限
+      if ('Notification' in window) { 
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') console.log('系統推播權限授權成功！');
+        }); 
+      }
+      
+      if ('speechSynthesis' in window) { window.speechSynthesis.speak(new SpeechSynthesisUtterance('')); }
+      registerPwaServiceWorker();
+
       const overlay = document.getElementById('audioUnlockOverlay');
       overlay.classList.add('opacity-0', 'pointer-events-none');
       setTimeout(() => { overlay.style.display = 'none'; }, 500);
@@ -471,16 +514,13 @@
 
       const timerBox = document.getElementById('timerBox');
       const badge = document.getElementById('timerBadge');
-      const icsBox = document.getElementById('icsAlarmBox');
       
       if (countdownInterval) {
         timerBox.className = "bg-amber-50/80 p-5 md:p-6 rounded-3xl border-[3px] border-[#FFC72C] text-center mb-6 shadow-md ring-4 ring-amber-400/20 scale-[1.01] transition-all duration-300";
         badge.classList.remove('hidden');
-        icsBox.classList.remove('hidden');
       } else {
         timerBox.className = "bg-[#FDFBF7] p-5 md:p-6 rounded-3xl border-[3px] border-[#FFC72C] text-center mb-6 transition-all duration-300 shadow-none ring-0 scale-100";
         badge.classList.add('hidden');
-        icsBox.classList.add('hidden');
       }
 
       const btnContainer = document.getElementById('timerBtnGridContainer');
@@ -515,7 +555,7 @@
       document.getElementById('monMood').innerText = loadStatusFromLocalLock('moodEmoji', globalStatus['今日心情 Emoji'] || '未填');
       document.getElementById('monMoodNote').innerText = globalStatus['今日心情留言'] || '';
       
-      document.querySelectorAll('.mood-btn').forEach(b => b.className = b.className.replace(' bg-sibylMain border-sibylLight font-bold ring-2 ring-sibylLight/30 scale-105', ''));
+      document.querySelectorAll('.mood-btn').forEach(b => b.className = b.className.replace(' bg-[#E8D8CE] border-sibylLight font-bold ring-2 ring-sibylLight/30 scale-105', ''));
       const activeEmoji = loadStatusFromLocalLock('moodEmoji', globalStatus['今日心情 Emoji'] || "");
       if(activeEmoji) {
         const activeBtn = document.getElementById(`emoji-${activeEmoji}`);
@@ -624,7 +664,6 @@
       });
     }
 
-    // 🚀【核心：絕對時間戳記計時器】
     function startTimerSession(name, minutes) {
       if (countdownInterval) clearInterval(countdownInterval);
       currentTimerNameLocal = name; 
@@ -670,50 +709,20 @@
       }, 1000);
     }
 
-    // 📲 零授權！觸發下載 .ics 行事曆鬧鐘，直接穿透 iOS/Android 手機鎖屏
-    function downloadNativeIcsAlarm() {
-      if (!targetEndTimeMs) return;
-      const startDate = new Date(targetEndTimeMs);
-      const endDate = new Date(targetEndTimeMs + (5 * 60 * 1000)); // 5 分鐘事件
-
-      function formatDateToICS(d) {
-        return d.toISOString().replace(/-|:|\.\d+/g, "");
-      }
-
-      const icsContent = 
-`BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//Sibyl Digital Manager//Child Timer//TW
-BEGIN:VEVENT
-SUMMARY:⏰【數位管家】${currentTimerNameLocal || '計時項目'} 時間到囉！
-DESCRIPTION:${globalConfig['計時結束播報語'] || '電腦使用時間到了，請讓眼睛休息一下唷！✨'}
-DTSTART:${formatDateToICS(startDate)}
-DTEND:${formatDateToICS(endDate)}
-BEGIN:VALARM
-TRIGGER:-PT0M
-ACTION:DISPLAY
-DESCRIPTION:Time Up
-END:VALARM
-END:VEVENT
-END:VCALENDAR`;
-
-      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8;' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `timer_alarm.ics`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-      
-      showSibylToast("手機系統鬧鐘下載中，請點擊「加入/新增」即可鎖定鎖屏鬧鐘！⏰", "success");
-    }
-
+    // 🚀【雙重穿透轟炸】PWA 系統推播 ＋ 前台爆閃震動廣播
     function triggerDualLayerBombing(title, speakText) {
-      if ('Notification' in window && Notification.permission === 'granted') {
+      // 1. 穿透鎖屏與切換 App：發送 PWA Service Worker 系統原生推播
+      if (swRegistration && swRegistration.active) {
+        swRegistration.active.postMessage({
+          type: 'TRIGGER_PUSH',
+          title: title,
+          body: speakText
+        });
+      } else if ('Notification' in window && Notification.permission === 'granted') {
         new Notification(title, { body: speakText, requireInteraction: true });
       }
+
+      // 2. 前台狀態判斷
       if (document.visibilityState === "visible") {
         executeFrontEndBombing(title, speakText);
       } else {
