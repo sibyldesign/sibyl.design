@@ -32,6 +32,11 @@
 </head>
 <body id="mainBody" class="bg-sibylBg m-0 p-4 md:p-6 min-h-full flex flex-col items-center justify-start box-border text-sibylText font-sans leading-relaxed">
 
+  <!-- 🔇 隱藏式無音 MP3 背景保活播放器 (防止手機/電腦鎖屏與休眠凍結) -->
+  <audio id="silentAudioPlayer" loop style="display: none;">
+    <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=" type="audio/wav">
+  </audio>
+
   <!-- 🔊 質感啟動與防呆連線遮罩層 -->
   <div id="audioUnlockOverlay" class="fixed inset-0 bg-sibylBg z-[9999] flex flex-col items-center justify-center p-4 box-border transition-all duration-500">
     <div class="w-full max-w-[380px] bg-white rounded-[32px] p-6 text-center shadow-[0_25px_60px_rgba(74,62,61,0.07)] border-2 border-[#EFEAE2] flex flex-col items-center box-border">
@@ -82,8 +87,7 @@
     </div>
     
     <div class="text-base font-bold mb-3 flex items-center gap-2" id="timerTitle">⏰ 計時提醒管理</div>
-    <!-- 🟡 大框框超美黃框樣式 (與圖一完全一致) -->
-    <div class="bg-[#FDFBF7] p-5 md:p-6 rounded-3xl border-[3px] border-[#FFC4C4] transition-all duration-300 shadow-sm" id="timerBox" style="border-color: #FFC72C;">
+    <div class="bg-[#FDFBF7] p-5 md:p-6 rounded-3xl border-[3px] border-[#FFC72C] transition-all duration-300 shadow-sm" id="timerBox">
       <div id="timerBadge" class="hidden inline-block mx-auto mb-2 px-3 py-0.5 bg-amber-500 text-white text-[10px] font-extrabold tracking-widest uppercase rounded-full animate-pulse">⏳ 任務進行中</div>
       <div class="text-sm font-bold text-sibylMuted transition-all" id="currentTimerItemName">請選擇下方項目開始計時</div>
       <div class="text-5xl md:text-6xl font-extrabold tracking-wider my-3 font-mono text-sibylText drop-shadow-sm" id="txtCountdown">00:00</div>
@@ -127,7 +131,6 @@
     <h1 class="text-lg font-bold mb-1 flex items-center gap-1.5">⚙️ 控制面板與進度監控</h1>
     <div class="text-xs text-sibylMuted mb-4">同步資料中，變更後孩子端同步更新</div>
     
-    <!-- 📈 今日即時狀態區板塊 -->
     <div class="bg-[#FDFBF7] p-4 rounded-2xl border-2 border-[#EFEAE2] mb-5 text-sm shadow-sm relative">
       <button onclick="forceRefreshAllData()" class="absolute top-3 right-3 bg-white border border-[#EFEAE2] text-sibylText px-2 py-1 rounded-md text-[11px] font-bold shadow-sm hover:bg-[#FAF8F5] active:scale-95 transition-all flex items-center gap-1">
         🔄 強制重整
@@ -135,21 +138,19 @@
 
       <div class="font-bold mb-2 text-sibylSuccessText flex items-center gap-1">📈 今日即時狀態：</div>
       <div class="space-y-1.5 text-xs">
-        <!-- 🎯 修正：完成度強製以 ％ 百分比顯示 -->
         <div>• 任務完成度：<span id="monProgress" class="font-extrabold text-sm text-sibylText">0%</span></div>
         <div class="p-2 bg-white rounded-lg border border-[#EFEAE2] text-sibylText font-medium leading-relaxed">
           <span class="text-sibylMuted font-bold block mb-0.5">📌 目前勾選狀態：</span>
           <span id="monTaskString" class="font-mono text-[11px] break-all">載入中...</span>
         </div>
         <div>• 計時器狀態：<span id="monTimerState" class="font-bold text-sibylText">閒置</span></div>
-        <div class="p-2 bg-sibylMain/20 rounded-lg text-[#7C5A99] font-medium">• 剩餘時間：<span id="monTimerLeft" class="font-bold text-sm">--</span> <span class="text-[10px] font-normal block text-sibylMuted mt-0.5">（雲端每 15 秒同步進度刷新）</span></div>
+        <div class="p-2 bg-sibylMain/20 rounded-lg text-[#7C5A99] font-medium">• 剩餘時間：<span id="monTimerLeft" class="font-bold text-sm">--</span> <span class="text-[9px] font-normal block text-sibylMuted mt-0.5">（雲端每 15 秒同步進度刷新）</span></div>
         <div class="pt-2 mt-2 border-t border-dashed border-[#EFEAE2]">
           • 心情狀態：<span id="monMood" class="font-bold text-sm">無</span> <span id="monMoodNote" class="text-sibylMuted bg-white px-1.5 py-0.5 rounded border border-[#EFEAE2] ml-1"></span>
         </div>
       </div>
     </div>
 
-    <!-- 📖 歷史心情日記查看面板板塊 -->
     <div class="bg-[#FAF8F5] p-4 rounded-2xl border-2 border-[#EFEAE2] mb-5 shadow-inner">
       <div class="flex justify-between items-center mb-2">
         <span class="text-xs font-bold text-sibylText flex items-center gap-1">📖 歷史心情日記收件夾</span>
@@ -160,7 +161,6 @@
       </div>
     </div>
 
-    <!-- 🗂️ 家長設置格狀分區 -->
     <div class="space-y-4 text-xs">
       <div class="p-4 bg-red-50/40 rounded-2xl border border-red-100/70 space-y-2">
         <div class="font-bold text-red-800/80 text-[13px]">🔒 後台安全防火牆</div>
@@ -229,7 +229,8 @@
     let isFixedAlertTriggered = false; 
     let isSyncing = false; 
     let pendingBombingPayload = null; 
-    let currentTimerNameLocal = ""; // 紀錄本地當前正在計時的項目名稱
+    let currentTimerNameLocal = ""; 
+    let targetEndTimeMs = 0; // 絕對結束時間戳記
 
     const colorPalette = [
       { bg: 'bg-[#F4EAE6]', border: 'border-[#E5D4CD]', text: 'text-[#AA6C59]' }, 
@@ -275,12 +276,9 @@
       }, 4000);
     }
 
-    // 🧹 精準格式化：徹底轉化、清洗任何奇怪的時區與宇宙時間格式
     function formatTimeStr(rawStr) {
       if (!rawStr) return "";
       let s = String(rawStr).trim();
-      
-      // 處理 Google 試算表直接格式化出來的標準全英文字串 (如圖二所示)
       if (s.includes("GMT") || (s.includes("Mon") || s.includes("Tue") || s.includes("Wed") || s.includes("Thu") || s.includes("Fri") || s.includes("Sat") || s.includes("Sun"))) {
         try {
           let p = new Date(s);
@@ -294,7 +292,6 @@
           }
         } catch(e) {}
       }
-
       if (s.includes("T") && s.includes("Z")) {
         try {
           let tPart = s.split("T")[1].substring(0, 5); 
@@ -387,6 +384,7 @@
       });
     }
 
+    // 喚醒補償機制 (從背景回到網頁時觸發)
     document.addEventListener("visibilitychange", function() {
       if (document.visibilityState === "visible" && pendingBombingPayload) {
         let payload = pendingBombingPayload;
@@ -443,7 +441,7 @@
     }
 
     function renderPageElements() {
-      document.getElementById('txtGreeting').innerText = `哈囉，${globalConfig['孩子暱稱'] || '寶貝'}`;
+      document.getElementById('txtGreeting').innerText = `${globalConfig['孩子暱稱'] || '寶貝'}`;
       
       const container = document.getElementById('taskListContainer');
       container.innerHTML = "";
@@ -477,7 +475,6 @@
         badge.classList.add('hidden');
       }
 
-      // 🎯 修正：渲染計時按鈕項目 (增加被點選時的「超美黃框 + 淺黃底色」圖一效果)
       const btnContainer = document.getElementById('timerBtnGridContainer');
       btnContainer.innerHTML = "";
       const names = (globalConfig['計時項目名稱'] || "").split(',').map(n => n.trim()).filter(n => n.length > 0);
@@ -487,7 +484,6 @@
         const btn = document.createElement('button');
         const styleSet = colorPalette[idx % colorPalette.length];
         
-        // 判斷是否正被點選計時中
         const isCurrentActive = (countdownInterval && currentTimerNameLocal === name);
         const activeStyles = isCurrentActive 
           ? "border-[#FFC72C] bg-amber-50/60 ring-4 ring-amber-400/10 scale-[1.02]" 
@@ -496,7 +492,6 @@
         btn.className = `p-3.5 border-2 ${activeStyles} ${styleSet.text} rounded-2xl font-extrabold text-sm shadow-sm cursor-pointer transition-all active:scale-95 flex flex-col items-center justify-center gap-0.5 btn-timer-item`;
         btn.innerHTML = `<span class="tracking-tight text-[15px]">${name}</span><span class="text-[11px] font-mono font-bold opacity-80">⏱️ ${mLen} 分鐘</span>`;
         
-        // 如果有其他項目正在計時，未選中的按鈕半透明化
         if (countdownInterval && currentTimerNameLocal !== name) {
           btn.classList.add('opacity-40');
         }
@@ -505,7 +500,6 @@
         btnContainer.appendChild(btn);
       });
 
-      // 🎯 修正：即時狀態欄位百分比及勾選狀態字串美化展示
       document.getElementById('monProgress').innerText = formatProgressDisplay(loadStatusFromLocalLock('progressPercent', globalStatus['今日任務達成率'] || '0%'));
       document.getElementById('monTaskString').innerText = loadStatusFromLocalLock('taskListStr', globalStatus['目前勾選狀態'] || '未生成任務狀態');
       document.getElementById('monTimerState').innerText = globalStatus['計時狀態'] || '閒置';
@@ -594,7 +588,6 @@
       });
     }
 
-    // 🎯 修正：歷史日記列表渲染與格式完全洗淨
     function loadMoodHistoryToParentView() {
       const container = document.getElementById('parentMoodHistoryContainer');
       container.innerHTML = `<div class="text-center text-sibylMuted py-4 text-xs animate-pulse">正在讀取雲端日記歷史庫...</div>`;
@@ -609,8 +602,6 @@
         res.logs.reverse().forEach(log => {
           const item = document.createElement('div');
           item.className = "p-3 bg-white rounded-xl border-2 border-[#EFEAE2] shadow-sm space-y-1";
-          
-          // 強制轉換、格式化洗淨成純淨的年月日時間字串，驅逐長字串英文
           let displayTime = formatTimeStr(log.time);
           
           item.innerHTML = `
@@ -625,20 +616,49 @@
       });
     }
 
+    // 🚀【核心保活重寫】：採用絕對時間戳記 ＋ 無聲音訊保活播放器
     function startTimerSession(name, minutes) {
       if (countdownInterval) clearInterval(countdownInterval);
-      currentTimerNameLocal = name; // 設定本地正在運作的按鈕名
+      currentTimerNameLocal = name; 
       document.getElementById('currentTimerItemName').innerText = `正在計時項目：［${name}］`;
-      let totalSeconds = minutes * 60;
+      
+      // 1. 啟動無音音訊，強制告訴作業系統：這個網頁正在播放音樂，禁止休眠凍結！
+      const audioPlayer = document.getElementById('silentAudioPlayer');
+      if (audioPlayer) {
+        audioPlayer.play().catch(e => console.log('Audio auto-play managed:', e));
+      }
+
+      // 2. 算絕對目標時間（當前時間 + X 分鐘）
+      targetEndTimeMs = Date.now() + (minutes * 60 * 1000);
       
       globalStatus['計時狀態'] = `運作［${name}］`;
       globalStatus['計時剩餘時間'] = `${minutes}分0秒`;
-      renderPageElements(); // 觸發重繪，讓對應項目秒上超美黃框
+      renderPageElements(); 
       
       call母艦API({ action: "updateTimer", timerState: `運作［${name}］`, remainingTime: `${minutes}分0秒` });
 
+      // 3. 以絕對時間差進行倒數比對
       countdownInterval = setInterval(function() {
-        totalSeconds--;
+        let remainingMs = targetEndTimeMs - Date.now();
+        let totalSeconds = Math.ceil(remainingMs / 1000);
+
+        if (totalSeconds <= 0) {
+          // 時間到！
+          clearInterval(countdownInterval);
+          countdownInterval = null;
+          currentTimerNameLocal = "";
+          if (audioPlayer) audioPlayer.pause(); // 停止無音音樂
+          
+          document.getElementById('txtCountdown').innerText = "00:00";
+          document.getElementById('currentTimerItemName').innerText = "計時完成！";
+          renderPageElements();
+          
+          let rawAlert = globalConfig['計時結束播報語'] ? globalConfig['計時結束播報語'].trim() : "";
+          let speakUnit = rawAlert || "時間到了！";
+          triggerDualLayerBombing("⏰ 計時任務終了", `${speakUnit}。${speakUnit}。${speakUnit}。${speakUnit}。`);
+          return;
+        }
+
         let m = Math.floor(totalSeconds / 60);
         let s = totalSeconds % 60;
         document.getElementById('txtCountdown').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
@@ -648,19 +668,6 @@
 
         if (totalSeconds % 15 === 0) {
           call母艦API({ action: "updateTimer", timerState: `運作［${name}］`, remainingTime: `${m}分${s}秒` });
-        }
-
-        if (totalSeconds <= 0) {
-          clearInterval(countdownInterval);
-          countdownInterval = null;
-          currentTimerNameLocal = "";
-          document.getElementById('txtCountdown').innerText = "00:00";
-          document.getElementById('currentTimerItemName').innerText = "計時完成！";
-          renderPageElements();
-          
-          let rawAlert = globalConfig['計時結束播報語'] ? globalConfig['計時結束播報語'].trim() : "";
-          let speakUnit = rawAlert || "時間到了！";
-          triggerDualLayerBombing("⏰ 計時任務終了", `${speakUnit}。${speakUnit}。${speakUnit}。${speakUnit}。`);
         }
       }, 1000);
     }
