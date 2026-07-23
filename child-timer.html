@@ -151,7 +151,7 @@
     <div class="bg-[#FAF8F5] p-4 rounded-2xl border-2 border-[#EFEAE2] mb-5 shadow-inner">
       <div class="flex justify-between items-center mb-2">
         <span class="text-xs font-bold text-sibylText flex items-center gap-1">📖 歷史心情日記收件夾</span>
-        <span class="text-[10px] text-sibylLight font-bold bg-[#F4EAE6] px-1.5 py-0.5 rounded">🧹 滿90天自動清理</span>
+        <span class="text-[10px] text-sibylLight font-bold bg-[#F4EAE6] px-1.5 py-0.5 rounded">🧹 滿30天自動清理</span>
       </div>
       <div id="parentMoodHistoryContainer" class="max-h-[180px] overflow-y-auto space-y-2 pr-1 text-xs">
         <div class="text-center text-sibylMuted py-4 text-xs animate-pulse">正在讀取雲端日記庫...</div>
@@ -218,7 +218,7 @@
     </div>
   </div>
 
-  <!-- 🖼️ 畫中畫 Canvas 隱藏元件 (300x150) -->
+  <!-- 🖼️ 畫中畫 Canvas 隱藏元件 -->
   <canvas id="pipCanvas" width="300" height="150" class="hidden"></canvas>
   <video id="pipVideo" autoplay muted class="hidden"></video>
 
@@ -426,7 +426,7 @@
       call母艦API({ action: "loadAll" }, function(res) {
         globalConfig = res.settings;
         
-        // 🎯 修正後台時間同步：若本機已有計時進行中，以本機精準算出來的剩餘時間為準回傳給監控面板
+        // 🎯 雲端拉回時，以此處進行即時秒數運算
         if (countdownInterval && targetEndTimeMs > 0) {
           let rMs = targetEndTimeMs - Date.now();
           let rSec = Math.max(0, Math.ceil(rMs / 1000));
@@ -604,6 +604,7 @@
       });
     }
 
+    // 🎯 修正歷史心情：若後端回傳空陣列，前台實時防護並顯示「無資料」
     function loadMoodHistoryToParentView() {
       const container = document.getElementById('parentMoodHistoryContainer');
       container.innerHTML = `<div class="text-center text-sibylMuted py-4 text-xs animate-pulse">正在讀取雲端日記歷史庫...</div>`;
@@ -647,7 +648,8 @@
       globalStatus['計時剩餘時間'] = `${minutes}分0秒`;
       renderPageElements(); 
       
-      call母艦API({ action: "updateTimer", timerState: `運作［${name}］`, remainingTime: `${minutes}分0秒` });
+      // 🚀 將 Target Timestamp 傳送給後端大腦
+      call母艦API({ action: "updateTimer", timerState: `運作［${name}］`, remainingTime: `${minutes}分0秒`, targetEndTimeMs: targetEndTimeMs });
 
       countdownInterval = setInterval(function() {
         let remainingMs = targetEndTimeMs - Date.now();
@@ -666,7 +668,6 @@
           let rawAlert = globalConfig['計時結束播報語'] ? globalConfig['計時結束播報語'].trim() : "";
           let speakUnit = rawAlert || "時間到了！請讓眼睛休息一下！";
           
-          // 🚀 觸發懸浮窗紅黑爆閃 + 音效
           triggerPipFlashing("⚠️ 時間到了！", "請開始休息");
           triggerDualLayerBombing("⏰ 遊戲時間終了", `${speakUnit}。${speakUnit}。${speakUnit}。${speakUnit}。`);
           return;
@@ -677,14 +678,13 @@
         let timeDisplay = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
         document.getElementById('txtCountdown').innerText = timeDisplay;
         
-        // 畫中畫即時更新 (黑底磨砂高透視感)
         updatePipCanvas(timeDisplay, name, '#FFC72C');
         
         globalStatus['計時狀態'] = `運作［${name}］`;
         globalStatus['計時剩餘時間'] = `${m}分${s}秒`;
 
         if (totalSeconds % 15 === 0) {
-          call母艦API({ action: "updateTimer", timerState: `運作［${name}］`, remainingTime: `${m}分${s}秒` });
+          call母艦API({ action: "updateTimer", timerState: `運作［${name}］`, remainingTime: `${m}分${s}秒`, targetEndTimeMs: targetEndTimeMs });
         }
       }, 1000);
     }
@@ -704,7 +704,7 @@
       globalStatus['計時狀態'] = `眼睛休息中`;
       globalStatus['計時剩餘時間'] = `${restMins}分0秒`;
       renderPageElements();
-      call母艦API({ action: "updateTimer", timerState: "眼睛休息中", remainingTime: `${restMins}分0秒` });
+      call母艦API({ action: "updateTimer", timerState: "眼睛休息中", remainingTime: `${restMins}分0秒`, targetEndTimeMs: targetEndTimeMs });
 
       countdownInterval = setInterval(function() {
         let remainingMs = targetEndTimeMs - Date.now();
@@ -720,7 +720,6 @@
           
           let restEndText = "休息時間到了！眼睛已經放鬆囉！可以繼續活動囉！";
           
-          // 🚀 觸發懸浮窗綠黑爆閃 + 音效
           triggerPipFlashing("✨ 休息結束！", "可以活動囉", "#10B981");
           triggerDualLayerBombing("✨ 休息時間結束", `${restEndText}。${restEndText}。${restEndText}。${restEndText}。`);
           return;
@@ -731,39 +730,33 @@
         let timeDisplay = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
         document.getElementById('txtCountdown').innerText = timeDisplay;
         
-        // 畫中畫休息更新 (綠色文字)
         updatePipCanvas(timeDisplay, "眼睛休息中", "#34D399");
 
         globalStatus['計時狀態'] = `眼睛休息中`;
         globalStatus['計時剩餘時間'] = `${m}分${s}秒`;
 
         if (totalSeconds % 15 === 0) {
-          call母艦API({ action: "updateTimer", timerState: "眼睛休息中", remainingTime: `${m}分${s}秒` });
+          call母艦API({ action: "updateTimer", timerState: "眼睛休息中", remainingTime: `${m}分${s}秒`, targetEndTimeMs: targetEndTimeMs });
         }
       }, 1000);
     }
 
-    // 🎮【畫中畫 (Picture-in-Picture) 黑底透光高對比度視窗】
     function updatePipCanvas(timeText, labelText, textColor = '#FFC72C', bgColor = 'rgba(20, 20, 20, 0.78)') {
       let ctx = pipCanvas.getContext('2d');
       ctx.clearRect(0, 0, 300, 150);
       
-      // 半透明深色磨砂背景 (不遮擋麥塊遊戲視線)
       ctx.fillStyle = bgColor;
       ctx.fillRect(0, 0, 300, 150);
       
-      // 細微螢光邊框
       ctx.strokeStyle = textColor;
       ctx.lineWidth = 4;
       ctx.strokeRect(2, 2, 296, 146);
 
-      // 上方標籤
       ctx.fillStyle = '#FFFFFF';
       ctx.font = 'bold 16px sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(labelText || '計時中', 150, 38);
 
-      // 時間文字 (螢光亮色大字)
       ctx.fillStyle = textColor;
       ctx.font = 'extrabold 52px monospace';
       ctx.fillText(timeText, 150, 102);
@@ -773,7 +766,6 @@
       }
     }
 
-    // 🚨 懸浮窗爆閃提醒機制 (時間到時紅黑/綠黑交替閃爍)
     function triggerPipFlashing(title, subTitle, themeColor = '#EF4444') {
       if (pipFlashInterval) clearInterval(pipFlashInterval);
       let isAlternate = false;
@@ -785,7 +777,7 @@
         updatePipCanvas("00:00", title, txtColor, bg);
         isAlternate = !isAlternate;
         count++;
-        if (count > 40) { // 閃爍 20 秒後恢復
+        if (count > 40) {
           clearInterval(pipFlashInterval);
           pipFlashInterval = null;
         }
