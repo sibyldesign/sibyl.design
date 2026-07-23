@@ -74,7 +74,6 @@
     
     <div class="text-base font-bold mb-3 flex items-center justify-between" id="timerTitle">
       <span>⏰ 計時提醒管理</span>
-      <!-- 🎮 畫中畫懸浮視圖按鈕 (置頂於遊戲上方) -->
       <button onclick="togglePipMode()" class="text-xs text-sibylMuted bg-[#FAF8F5] px-2.5 py-1 rounded-lg border border-[#EFEAE2] font-bold hover:bg-amber-50 active:scale-95 transition-all">🖼️ 遊戲中置頂懸浮</button>
     </div>
     
@@ -180,7 +179,6 @@
         </div>
       </div>
 
-      <!-- ⏱️ 計時與休息長度設定 -->
       <div class="p-4 bg-blue-50/40 rounded-2xl border border-blue-100/70 space-y-2">
         <div class="font-bold text-blue-800/80 text-[13px]">⏱️ 自訂項目計時與休息配額</div>
         <div>
@@ -220,7 +218,7 @@
     </div>
   </div>
 
-  <!-- 🖼️ 畫中畫 Canvas 隱藏元件 (用於產生懸浮小視窗) -->
+  <!-- 🖼️ 畫中畫 Canvas 隱藏元件 (300x150) -->
   <canvas id="pipCanvas" width="300" height="150" class="hidden"></canvas>
   <video id="pipVideo" autoplay muted class="hidden"></video>
 
@@ -240,6 +238,7 @@
     let targetEndTimeMs = 0;
     let pipVideo = document.getElementById('pipVideo');
     let pipCanvas = document.getElementById('pipCanvas');
+    let pipFlashInterval = null;
 
     const colorPalette = [
       { bg: 'bg-[#F4EAE6]', border: 'border-[#E5D4CD]', text: 'text-[#AA6C59]' }, 
@@ -426,10 +425,17 @@
 
       call母艦API({ action: "loadAll" }, function(res) {
         globalConfig = res.settings;
-        if (countdownInterval) {
+        
+        // 🎯 修正後台時間同步：若本機已有計時進行中，以本機精準算出來的剩餘時間為準回傳給監控面板
+        if (countdownInterval && targetEndTimeMs > 0) {
+          let rMs = targetEndTimeMs - Date.now();
+          let rSec = Math.max(0, Math.ceil(rMs / 1000));
+          let rm = Math.floor(rSec / 60);
+          let rs = rSec % 60;
           res.status['計時狀態'] = globalStatus['計時狀態'];
-          res.status['計時剩餘時間'] = globalStatus['計時剩餘時間'];
+          res.status['計時剩餘時間'] = `${rm}分${rs}秒`;
         }
+        
         res.status['目前勾選狀態'] = loadStatusFromLocalLock('taskListStr', res.status['目前勾選狀態'] || "");
         res.status['今日任務達成率'] = loadStatusFromLocalLock('progressPercent', res.status['今日任務達成率'] || "0%");
         res.status['今日心情 Emoji'] = loadStatusFromLocalLock('moodEmoji', res.status['今日心情 Emoji'] || "");
@@ -629,7 +635,9 @@
     // 🚀【遊戲計時開始】
     function startTimerSession(name, minutes) {
       if (countdownInterval) clearInterval(countdownInterval);
-      document.getElementById('restTriggerBox').classList.add('hidden'); // 隱藏休息按鈕
+      if (pipFlashInterval) { clearInterval(pipFlashInterval); pipFlashInterval = null; }
+      
+      document.getElementById('restTriggerBox').classList.add('hidden'); 
       currentTimerNameLocal = name; 
       document.getElementById('currentTimerItemName').innerText = `正在計時項目：［${name}］`;
       
@@ -652,13 +660,14 @@
           
           document.getElementById('txtCountdown').innerText = "00:00";
           document.getElementById('currentTimerItemName').innerText = "⏰ 遊戲時間到了！請開始休息";
-          
-          // 🟢 顯示綠色大按鈕，要求孩子點擊「我開始休息」
           document.getElementById('restTriggerBox').classList.remove('hidden');
           renderPageElements();
           
           let rawAlert = globalConfig['計時結束播報語'] ? globalConfig['計時結束播報語'].trim() : "";
           let speakUnit = rawAlert || "時間到了！請讓眼睛休息一下！";
+          
+          // 🚀 觸發懸浮窗紅黑爆閃 + 音效
+          triggerPipFlashing("⚠️ 時間到了！", "請開始休息");
           triggerDualLayerBombing("⏰ 遊戲時間終了", `${speakUnit}。${speakUnit}。${speakUnit}。${speakUnit}。`);
           return;
         }
@@ -667,7 +676,9 @@
         let s = totalSeconds % 60;
         let timeDisplay = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
         document.getElementById('txtCountdown').innerText = timeDisplay;
-        updatePipCanvas(timeDisplay, name); // 同步繪製到置頂畫中畫視窗
+        
+        // 畫中畫即時更新 (黑底磨砂高透視感)
+        updatePipCanvas(timeDisplay, name, '#FFC72C');
         
         globalStatus['計時狀態'] = `運作［${name}］`;
         globalStatus['計時剩餘時間'] = `${m}分${s}秒`;
@@ -678,9 +689,11 @@
       }, 1000);
     }
 
-    // 🍵【強制休息計時發動】（孩子點擊「我知道了，我開始休息」時觸發）
+    // 🍵【強制休息計時發動】
     function startRestCountdown() {
       if (countdownInterval) clearInterval(countdownInterval);
+      if (pipFlashInterval) { clearInterval(pipFlashInterval); pipFlashInterval = null; }
+      
       document.getElementById('restTriggerBox').classList.add('hidden');
       
       let restMins = parseInt(globalConfig['休息長度_分鐘'] || "10");
@@ -705,7 +718,11 @@
           document.getElementById('currentTimerItemName').innerText = "✨ 休息完成！可以繼續活動囉";
           renderPageElements();
           
-          triggerDualLayerBombing("✨ 休息時間結束", "休息時間到了！眼睛已經放鬆囉！。休息時間到了！眼睛已經放鬆囉！");
+          let restEndText = "休息時間到了！眼睛已經放鬆囉！可以繼續活動囉！";
+          
+          // 🚀 觸發懸浮窗綠黑爆閃 + 音效
+          triggerPipFlashing("✨ 休息結束！", "可以活動囉", "#10B981");
+          triggerDualLayerBombing("✨ 休息時間結束", `${restEndText}。${restEndText}。${restEndText}。${restEndText}。`);
           return;
         }
 
@@ -713,7 +730,9 @@
         let s = totalSeconds % 60;
         let timeDisplay = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
         document.getElementById('txtCountdown').innerText = timeDisplay;
-        updatePipCanvas(timeDisplay, "休息中");
+        
+        // 畫中畫休息更新 (綠色文字)
+        updatePipCanvas(timeDisplay, "眼睛休息中", "#34D399");
 
         globalStatus['計時狀態'] = `眼睛休息中`;
         globalStatus['計時剩餘時間'] = `${m}分${s}秒`;
@@ -724,25 +743,53 @@
       }, 1000);
     }
 
-    // 🎮【畫中畫 (Picture-in-Picture) 遊戲置頂視窗機制】
-    function updatePipCanvas(timeText, labelText) {
+    // 🎮【畫中畫 (Picture-in-Picture) 黑底透光高對比度視窗】
+    function updatePipCanvas(timeText, labelText, textColor = '#FFC72C', bgColor = 'rgba(20, 20, 20, 0.78)') {
       let ctx = pipCanvas.getContext('2d');
-      ctx.fillStyle = '#F9F6F0';
+      ctx.clearRect(0, 0, 300, 150);
+      
+      // 半透明深色磨砂背景 (不遮擋麥塊遊戲視線)
+      ctx.fillStyle = bgColor;
       ctx.fillRect(0, 0, 300, 150);
       
-      ctx.fillStyle = '#8A7A78';
+      // 細微螢光邊框
+      ctx.strokeStyle = textColor;
+      ctx.lineWidth = 4;
+      ctx.strokeRect(2, 2, 296, 146);
+
+      // 上方標籤
+      ctx.fillStyle = '#FFFFFF';
       ctx.font = 'bold 16px sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(labelText || '計時中', 150, 40);
+      ctx.fillText(labelText || '計時中', 150, 38);
 
-      ctx.fillStyle = '#4A3E3D';
+      // 時間文字 (螢光亮色大字)
+      ctx.fillStyle = textColor;
       ctx.font = 'extrabold 52px monospace';
-      ctx.fillText(timeText, 150, 100);
+      ctx.fillText(timeText, 150, 102);
 
       if (pipVideo.srcObject) {
-        // 動態刷新 Stream 內容
         pipVideo.srcObject.getVideoTracks()[0].requestFrame();
       }
+    }
+
+    // 🚨 懸浮窗爆閃提醒機制 (時間到時紅黑/綠黑交替閃爍)
+    function triggerPipFlashing(title, subTitle, themeColor = '#EF4444') {
+      if (pipFlashInterval) clearInterval(pipFlashInterval);
+      let isAlternate = false;
+      let count = 0;
+      
+      pipFlashInterval = setInterval(() => {
+        let bg = isAlternate ? 'rgba(220, 38, 38, 0.95)' : 'rgba(0, 0, 0, 0.95)';
+        let txtColor = isAlternate ? '#FFFFFF' : themeColor;
+        updatePipCanvas("00:00", title, txtColor, bg);
+        isAlternate = !isAlternate;
+        count++;
+        if (count > 40) { // 閃爍 20 秒後恢復
+          clearInterval(pipFlashInterval);
+          pipFlashInterval = null;
+        }
+      }, 250);
     }
 
     async function togglePipMode() {
@@ -750,12 +797,12 @@
         if (document.pictureInPictureElement) {
           await document.exitPictureInPicture();
         } else {
-          updatePipCanvas("00:00", "準備就緒");
+          updatePipCanvas("00:00", "準備就緒", "#FFC72C");
           const stream = pipCanvas.captureStream(10);
           pipVideo.srcObject = stream;
           await pipVideo.play();
           await pipVideo.requestPictureInPicture();
-          showSibylToast("懸浮視窗已開啟！可直接釘在遊戲角落看倒數囉 ✨", "success");
+          showSibylToast("置頂懸浮窗已開啓！高透光磨砂卡片已釘在遊戲角落 ✨", "success");
         }
       } catch (err) {
         showSibylToast("您的瀏覽器版本不支援懸浮視窗，請按 Alt+Tab 切換查看。");
